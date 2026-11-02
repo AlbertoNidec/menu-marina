@@ -22,6 +22,10 @@
   .price { color:#777; font-size:13px; margin-top:4px; }
   .star { color:#d22; }
   input[type=checkbox] { position:absolute; top:10px; right:10px; width:26px; height:26px; accent-color:var(--accent); cursor:pointer; }
+  .qty { display:none; align-items:center; gap:10px; margin-top:8px; }
+  label.card.sel .qty { display:flex; }
+  .qty button { width:32px; height:32px; padding:0; font-size:18px; }
+  .qty b { min-width:24px; text-align:center; }
   label.card.sel { border-color:var(--accent); background:#fff4e6; }
   footer { position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:2px solid var(--accent); padding:10px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; z-index:6; }
   #out { flex:1; min-width:200px; height:64px; padding:8px; font:14px monospace; border:1px solid #ccc; border-radius:8px; resize:vertical; }
@@ -52,7 +56,9 @@
 </footer>
 <script src="items.js"></script>
 <script>
-const sel = new Set(JSON.parse(localStorage.getItem('marinaSel') || '[]'));
+let saved = JSON.parse(localStorage.getItem('marinaSel') || '{}');
+if (Array.isArray(saved)) saved = Object.fromEntries(saved.map(n => [n, 1]));
+const sel = new Map(Object.entries(saved).map(([k, v]) => [+k, +v]));
 const main = document.getElementById('main'), out = document.getElementById('out');
 const cats = [...new Set(ITEMS.map(i => i.cat))];
 const cards = {};
@@ -67,31 +73,39 @@ for (const c of cats) {
     l.innerHTML = `<input type="checkbox" value="${it.n}">
       <img src="${it.img}" alt="${it.name}" loading="lazy">
       <div class="info"><span class="num">${it.n}</span><span class="name">${it.name}</span>${it.star ? ' <span class="star" title="Una volta a persona">★</span>' : ''}
-      <div class="price">€ ${it.price.toFixed(2).replace('.', ',')}</div></div>`;
-    const cb = l.querySelector('input');
-    cb.checked = sel.has(it.n);
-    l.classList.toggle('sel', cb.checked);
-    cb.addEventListener('change', () => {
-      cb.checked ? sel.add(it.n) : sel.delete(it.n);
-      l.classList.toggle('sel', cb.checked);
-      update();
-    });
-    cards[it.n] = { el: l, cb, text: (it.n + ' ' + it.name + ' ' + it.cat).toLowerCase(), sec };
+      <div class="price">€ ${it.price.toFixed(2).replace('.', ',')}</div>
+      <div class="qty"><button type="button" class="minus">−</button><b>1</b><button type="button" class="plus">+</button></div></div>`;
+    const cb = l.querySelector('input'), qb = l.querySelector('.qty b');
+    const render = () => {
+      const q = sel.get(it.n) || 0;
+      cb.checked = q > 0;
+      qb.textContent = q;
+      l.classList.toggle('sel', q > 0);
+    };
+    const setQty = q => {
+      q = it.star ? Math.min(q, 1) : Math.min(q, 99);
+      q > 0 ? sel.set(it.n, q) : sel.delete(it.n);
+      render(); update();
+    };
+    cb.addEventListener('change', () => setQty(cb.checked ? 1 : 0));
+    l.querySelector('.plus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) + 1); };
+    l.querySelector('.minus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) - 1); };
+    render();
+    cards[it.n] = { el: l, render, text: (it.n + ' ' + it.name + ' ' + it.cat).toLowerCase(), sec };
     grid.appendChild(l);
   }
   main.appendChild(sec);
 }
 
 function update() {
-  const list = [...sel].sort((a, b) => a - b);
-  out.value = (userName ? userName + ': ' : '') + list.join(',');
-  document.getElementById('count').textContent = list.length;
-  localStorage.setItem('marinaSel', JSON.stringify(list));
-}
-document.getElementById('copy').onclick = () => { out.select(); navigator.clipboard.writeText(out.value); };
+  const list = [...sel].sort((a, b) => a[0] - b[0]);
+  out.value = (userName ? userName + ': ' : '') + list.map(([n, q]) => q > 1 ? n + 'x' + q : n).join(',');
+  document.getElementById('count').textContent = list.reduce((s, [, q]) => s + q, 0);
+  localStorage.setItem('marinaSel', JSON.stringify(Object.fromEntries(sel)));
+}document.getElementById('copy').onclick = () => { out.select(); navigator.clipboard.writeText(out.value); };
 document.getElementById('clear').onclick = () => {
   sel.clear();
-  Object.values(cards).forEach(c => { c.cb.checked = false; c.el.classList.remove('sel'); });
+  Object.values(cards).forEach(c => c.render());
   update();
 };
 document.getElementById('q').addEventListener('input', e => {
