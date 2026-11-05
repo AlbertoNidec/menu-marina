@@ -65,6 +65,9 @@
   .arrival-intro { margin-bottom:20px; color:#533b27; line-height:1.5; }
   .arrival-card { min-width:0; background:#fff; border:2px solid #d9c8b7; border-radius:10px; overflow:hidden; }
   .arrival-card img { width:100%; aspect-ratio:4/3; display:block; object-fit:cover; }
+  .arrival-photo { position:relative; }
+  .arrived-mark { display:none; position:absolute; inset:0; width:100%; height:100%; background:#ffffff40; pointer-events:none; }
+  .arrival-card.complete .arrived-mark { display:block; }
   .arrival-card h3 { font-size:17px; margin:0 0 8px; line-height:1.4; }
   .arrival-card p { margin:8px 0; }
   .arrival-card button { min-height:44px; width:100%; margin-top:6px; background:#9b4b10; }
@@ -305,7 +308,13 @@ function renderArrivals(list) {
       row = document.createElement('article');
       row.className = 'arrival-card';
       row.dataset.arrivalDish = n;
-      row.innerHTML = `<img src="${it.img}" alt="${it.name}" loading="lazy">
+      row.innerHTML = `<div class="arrival-photo">
+          <img src="${it.img}" alt="${it.name}" loading="lazy">
+          <svg class="arrived-mark" viewBox="0 0 100 75" aria-hidden="true" focusable="false">
+            <path d="M18 12 L82 63 M82 12 L18 63" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+            <path d="M18 12 L82 63 M82 12 L18 63" fill="none" stroke="#a12515" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
         <div class="info"><h3>${n} · ${it.name}</h3>
           <p class="arrival-state"></p>
           <button type="button" data-arrival-action="arrive" aria-label="Segna una porzione arrivata di ${n}: ${it.name}">Segna una porzione arrivata</button>
