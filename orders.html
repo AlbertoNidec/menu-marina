@@ -70,11 +70,9 @@
     <p>Incolla una lista per persona, su righe separate. I nomi sono facoltativi; le quantità dello stesso piatto vengono sommate.</p>
     <form id="mergeForm">
       <label for="lists">Liste dei partecipanti</label>
-      <textarea id="lists" required spellcheck="false" aria-describedby="formatHelp" placeholder="Mario: 2x3,5,101x2&#10;Anna: 2,5x2,60"></textarea>
-      <p id="formatHelp">Formato: <strong>Nome: 2x3,5,101x2</strong>. Un numero senza quantità vale una porzione. Accetta anche × al posto di x. Tutto viene elaborato nel browser, senza invii a un server.</p>
+      <textarea id="lists" required spellcheck="false" placeholder="Mario: 2x3,5,101x2&#10;Anna: 2,5x2,60"></textarea>
       <label for="tableNumber">Numero tavolo (facoltativo)</label>
       <input id="tableNumber" type="text" maxlength="12" placeholder="Es. 12">
-      <p>Modulo formato A6: <strong>10,5 × 14,8 cm</strong>, stampato su A4 da ritagliare. Nella finestra di stampa usa scala <strong>100%</strong> (dimensioni effettive), senza adattamento alla pagina, e disattiva intestazioni e piè di pagina del browser.</p>
       <div class="actions">
         <button type="submit">Unisci liste</button>
         <button id="print" type="button" disabled>Stampa / Salva PDF</button>
@@ -82,7 +80,7 @@
       </div>
     </form>
     <div id="errors" role="alert" hidden></div>
-    <p id="notice" role="status">La tabella stampabile apparirà qui sotto.</p>
+    <p id="notice" role="status"></p>
   </section>
   <section id="result" aria-labelledby="resultTitle" hidden>
     <h2 id="resultTitle">Menu Marina · Ordine del gruppo</h2>
@@ -223,7 +221,7 @@ printButton.onclick = async () => {
 };
 document.getElementById('reset').onclick = () => {
   lists.value = '';
-  invalidate('La tabella stampabile apparirà qui sotto.');
+  invalidate('');
   lists.focus();
 };
 </script>
