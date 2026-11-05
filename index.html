@@ -33,6 +33,14 @@
   button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 14px; font-size:14px; cursor:pointer; }
   button.sec { background:#888; }
   .count { font-weight:700; }
+  .order-status { flex:1 0 100%; display:flex; align-items:center; gap:12px; color:#533b27; }
+  .order-status svg { flex:none; width:52px; height:64px; }
+  .order-status strong { font-size:18px; }
+  .order-status p { margin:3px 0 0; font-size:14px; }
+  .order-status[data-level="high"] { color:#8a360f; }
+  .order-status[data-level="high"] .order-message { font-weight:700; }
+  .order-status[data-level="high"] svg { color:#b94b18; }
+  .order-status small { display:block; margin-top:3px; font-size:12px; }
 </style>
 </head>
 <body>
@@ -50,7 +58,21 @@
 </div>
 <main id="main"></main>
 <footer>
-  <div><span class="count" id="count">0</span> selezionati</div>
+  <div id="orderStatus" class="order-status" data-level="low" role="status" aria-live="polite" aria-atomic="true">
+    <svg viewBox="0 0 80 96" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="40" cy="15" r="11" fill="#f3cfab" stroke="currentColor" stroke-width="2"/>
+      <path d="M35 17 Q40 22 45 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="36" cy="12" r="1.5" fill="currentColor"/>
+      <circle cx="44" cy="12" r="1.5" fill="currentColor"/>
+      <path d="M28 34 L18 55 M52 34 L62 55 M33 72 L30 90 M47 72 L50 90" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <path id="orderBody" d="M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z" fill="#f4d7ae" stroke="currentColor" stroke-width="2"/>
+    </svg>
+    <div>
+      <strong><span class="count" id="count">0</span> <span id="countLabel">piatti ordinati</span></strong>
+      <p id="orderMessage" class="order-message">Il menu ti aspetta!</p>
+      <small>Il totale comprende le quantità di ciascun piatto.</small>
+    </div>
+  </div>
   <textarea id="out" readonly placeholder="Numeri selezionati (CSV)"></textarea>
   <button id="copy">Copia</button>
   <button id="clear" class="sec">Azzera</button>
@@ -102,9 +124,33 @@ for (const c of cats) {
 function update() {
   const list = [...sel].sort((a, b) => a[0] - b[0]);
   out.value = (userName ? userName + ': ' : '') + list.map(([n, q]) => q > 1 ? n + 'x' + q : n).join(',');
-  document.getElementById('count').textContent = list.reduce((s, [, q]) => s + q, 0);
+  const total = list.reduce((s, [, q]) => s + q, 0);
+  const level = total > 16 ? 'high' : total >= 12 ? 'medium' : 'low';
+  document.getElementById('count').textContent = total;
+  document.getElementById('countLabel').textContent = total === 1 ? 'piatto ordinato' : 'piatti ordinati';
+  document.getElementById('orderStatus').dataset.level = level;
+  document.getElementById('orderMessage').textContent = total === 0
+    ? 'Il menu ti aspetta!'
+    : level === 'high'
+      ? 'Probabilmente stai ordinando troppo. Anche le bacchette chiedono una pausa!'
+      : level === 'medium'
+        ? 'La tavola si riempie: buon appetito!'
+        : 'Un piatto alla volta, si comincia!';
+  const bodies = {
+    low: 'M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z',
+    medium: 'M27 30 Q40 26 53 30 Q61 50 56 72 Q40 79 24 72 Q19 50 27 30 Z',
+    high: 'M25 30 Q40 25 55 30 C72 42 79 66 66 76 Q40 88 14 76 C1 66 8 42 25 30 Z'
+  };
+  document.getElementById('orderBody').setAttribute('d', bodies[level]);
   localStorage.setItem('marinaSel', JSON.stringify(Object.fromEntries(sel)));
-}document.getElementById('copy').onclick = () => { out.select(); navigator.clipboard.writeText(out.value); };
+}
+const footer = document.querySelector('footer');
+const resizeFooter = () => {
+  document.body.style.paddingBottom = (footer.getBoundingClientRect().height + 24) + 'px';
+};
+new ResizeObserver(resizeFooter).observe(footer);
+resizeFooter();
+document.getElementById('copy').onclick = () => { out.select(); navigator.clipboard.writeText(out.value); };
 document.getElementById('clear').onclick = () => {
   sel.clear();
   Object.values(cards).forEach(c => c.render());
