@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Menu Marina</title>
 <style>
   :root { --accent:#d9822b; --bg:#faf6f0; --card:#fff; --ink:#2b2b2b; }
@@ -55,6 +55,67 @@
   button:focus-visible { outline:3px solid #533b27; outline-offset:2px; }
   .order-empty { margin:0; font-size:14px; color:#694a30; }
   .order-empty[hidden], .order-items[hidden] { display:none; }
+  [hidden] { display:none !important; }
+  .mode-switch { display:flex; gap:6px; }
+  .mode-switch button { background:#fff; color:#754315; border:1px solid #bca38a; min-height:44px; }
+  .mode-switch button[aria-pressed="true"] { background:#9b4b10; color:#fff; border-color:#9b4b10; }
+  .order-tray summary, .order-tools summary { cursor:pointer; padding:8px 0; font-weight:600; color:#754315; }
+  .order-tools { flex:1 0 100%; min-width:0; }
+  .tool-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding-top:6px; }
+  .arrival-intro { margin-bottom:20px; color:#533b27; line-height:1.5; }
+  .arrival-card { min-width:0; background:#fff; border:2px solid #d9c8b7; border-radius:10px; overflow:hidden; }
+  .arrival-card img { width:100%; aspect-ratio:4/3; display:block; object-fit:cover; }
+  .arrival-card h3 { font-size:17px; margin:0 0 8px; line-height:1.4; }
+  .arrival-card p { margin:8px 0; }
+  .arrival-card button { min-height:44px; width:100%; margin-top:6px; background:#9b4b10; }
+  .arrival-card .undo { background:#fff; color:#754315; border:1px solid #bca38a; }
+  .arrival-card button:disabled { background:#eee; color:#666; cursor:not-allowed; }
+  .arrival-card.complete { border-color:#38704d; background:#edf6ef; }
+  .arrival-card.complete .arrival-state { color:#245338; font-weight:700; }
+  #arrivalProgress { margin:0; font-weight:600; color:#245338; }
+  body[data-mode="table"] .order-tray, body[data-mode="table"] .order-tools,
+  body[data-mode="table"] .order-message, body[data-mode="table"] .order-status small { display:none; }
+  body[data-mode="table"] .order-status { flex:1; }
+  dialog { width:min(92vw,480px); max-height:85dvh; overflow:auto; border:1px solid #bca38a; border-radius:12px; padding:20px; color:#533b27; }
+  dialog::backdrop { background:#0008; }
+  dialog h2 { margin:0 0 12px; }
+  dialog textarea { width:100%; min-height:100px; margin:8px 0; padding:10px; font-size:16px; }
+  .import-error { color:#a12515; font-weight:600; }
+  .dialog-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  footer { padding-bottom:max(10px,env(safe-area-inset-bottom)); }
+  @media (max-width:600px) {
+    header { gap:8px; padding:8px 12px; }
+    h1 { font-size:22px; }
+    #who { margin-left:auto; max-width:55%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #q { order:2; flex:1 0 100%; width:100%; font-size:16px; min-height:44px; }
+    .mode-switch { order:3; width:100%; }
+    .mode-switch button { flex:1; font-size:16px; }
+    main { padding:0 12px; }
+    .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    h2 { font-size:24px; }
+    .info { padding:8px; }
+    .name { font-size:15px; overflow-wrap:anywhere; }
+    .qty { gap:4px; justify-content:space-between; }
+    .qty button, .order-controls button, .order-item .remove { min-width:44px; width:44px; height:44px; }
+    input[type=checkbox] { width:32px; height:32px; }
+    button { min-height:44px; }
+    footer { padding-left:12px; padding-right:12px; gap:6px; max-height:50dvh; }
+    .order-summary { gap:4px; }
+    .order-status { flex:1 0 100%; gap:8px; }
+    .order-status svg { width:36px; height:44px; }
+    .order-status p { font-size:13px; }
+    .order-status small { display:none; }
+    .order-tray { flex:1 0 100%; }
+    .order-tray summary, .order-tools summary { min-height:44px; display:list-item; padding:10px 0; }
+    .tool-actions { gap:8px; }
+    #out { flex:1 0 100%; width:100%; min-width:0; height:54px; font-size:16px; }
+    .tool-actions button { flex:1; padding:10px 8px; }
+    .arrival-card h3 { font-size:16px; }
+    .arrival-card p, .arrival-card button { font-size:14px; }
+  }
+  @media (max-width:350px) {
+    .grid { grid-template-columns:minmax(0,1fr); }
+  }
 </style>
 </head>
 <body>
@@ -62,6 +123,10 @@
   <h1>Menu Marina</h1>
   <input id="q" type="search" placeholder="Cerca per numero o nome…">
   <button id="who" class="sec"></button>
+  <nav class="mode-switch" aria-label="Modalità del menu">
+    <button id="editMode" type="button" aria-pressed="true">Ordina</button>
+    <button id="tableMode" type="button" aria-pressed="false">Al tavolo</button>
+  </nav>
 </header>
 <div id="nameDlg" style="display:none;position:fixed;inset:0;background:#000a;z-index:20;align-items:center;justify-content:center">
   <form id="nameForm" style="background:#fff;padding:24px;border-radius:12px;display:flex;flex-direction:column;gap:12px;width:min(90vw,340px)">
@@ -71,6 +136,25 @@
   </form>
 </div>
 <main id="main"></main>
+<main id="tableView" hidden>
+  <h2>Il tuo ordine al tavolo</h2>
+  <p class="arrival-intro">Qui l'ordine non si modifica. Segna ogni porzione quando arriva; se sbagli, puoi annullare l'ultimo arrivo.</p>
+  <p id="arrivalEmpty" class="arrival-intro" hidden>Nessun piatto ordinato. Torna a «Ordina» oppure importa una lista.</p>
+  <div id="arrivalItems" class="grid"></div>
+</main>
+<dialog id="importDialog" aria-labelledby="importTitle">
+  <form id="importForm">
+    <h2 id="importTitle">Importa una lista</h2>
+    <label for="importText">Incolla numeri e quantità, con il nome facoltativo.</label>
+    <textarea id="importText" required placeholder="Mario: 2x3,5,101x2" aria-describedby="importHelp importError"></textarea>
+    <p id="importHelp">L'importazione sostituisce l'ordine attuale e azzera gli arrivi. Puoi usare numeri separati da virgole e «x» per le quantità.</p>
+    <p id="importError" class="import-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button type="submit">Importa e sostituisci</button>
+      <button id="cancelImport" type="button" class="sec">Annulla</button>
+    </div>
+  </form>
+</dialog>
 <footer>
   <div class="order-summary">
   <div id="orderStatus" class="order-status" data-level="low" role="status" aria-live="polite" aria-atomic="true">
@@ -88,20 +172,30 @@
       <small>Il totale comprende le quantità di ciascun piatto.</small>
     </div>
   </div>
-      <div class="order-tray" role="region" aria-label="Piatti ordinati">
+      <details id="trayDetails" class="order-tray" open>
+        <summary>Foto e quantità dell'ordine</summary>
         <p id="orderEmpty" class="order-empty">Seleziona un piatto: lo ritroverai qui con foto e quantità.</p>
         <ul id="orderItems" class="order-items" aria-label="Riepilogo dei piatti ordinati" hidden></ul>
-    </div>
+      </details>
   </div>
+  <p id="arrivalProgress" role="status" aria-live="polite" hidden></p>
+  <details id="orderTools" class="order-tools" open>
+    <summary>Lista da copiare / importare</summary>
+    <div class="tool-actions">
   <textarea id="out" readonly placeholder="Numeri selezionati (CSV)"></textarea>
   <button id="copy">Copia</button>
   <button id="clear" class="sec">Azzera</button>
+  <button id="importButton" type="button">Importa lista</button>
+    </div>
+  </details>
 </footer>
 <script src="items.js"></script>
 <script>
 let saved = JSON.parse(localStorage.getItem('marinaSel') || '{}');
 if (Array.isArray(saved)) saved = Object.fromEntries(saved.map(n => [n, 1]));
 const sel = new Map(Object.entries(saved).map(([k, v]) => [+k, +v]));
+const arrived = new Map(Object.entries(JSON.parse(localStorage.getItem('marinaArrived') || '{}')).map(([n, q]) => [+n, +q]));
+let mode = 'edit';
 const main = document.getElementById('main'), out = document.getElementById('out');
 const cats = [...new Set(ITEMS.map(i => i.cat))];
 const cards = {};
@@ -128,6 +222,7 @@ for (const c of cats) {
       l.querySelector('.plus').disabled = q >= (it.star ? 1 : 99);
     };
     const setQty = q => {
+      if (mode !== 'edit') return;
       q = it.star ? Math.min(q, 1) : Math.min(q, 99);
       q > 0 ? sel.set(it.n, q) : sel.delete(it.n);
       render(); update();
@@ -189,9 +284,74 @@ orderItems.addEventListener('click', e => {
   cards[n].setQty(button.dataset.action === 'remove' ? 0 : q + (button.dataset.action === 'plus' ? 1 : -1));
 });
 
+const arrivalItems = document.getElementById('arrivalItems');
+const arrivalRows = new Map();
+function renderArrivals(list) {
+  for (const [n, row] of arrivalRows) {
+    if (!sel.has(n)) {
+      row.remove();
+      arrivalRows.delete(n);
+    }
+  }
+  let delivered = 0;
+  for (const n of arrived.keys()) if (!sel.has(n)) arrived.delete(n);
+  list.forEach(([n, q], index) => {
+    const done = Math.max(0, Math.min(q, arrived.get(n) || 0));
+    arrived.set(n, done);
+    delivered += done;
+    let row = arrivalRows.get(n);
+    if (!row) {
+      const it = ITEMS.find(item => item.n === n);
+      row = document.createElement('article');
+      row.className = 'arrival-card';
+      row.dataset.arrivalDish = n;
+      row.innerHTML = `<img src="${it.img}" alt="${it.name}" loading="lazy">
+        <div class="info"><h3>${n} · ${it.name}</h3>
+          <p class="arrival-state"></p>
+          <button type="button" data-arrival-action="arrive" aria-label="Segna una porzione arrivata di ${n}: ${it.name}">Segna una porzione arrivata</button>
+          <button type="button" class="undo" data-arrival-action="undo" aria-label="Annulla un arrivo di ${n}: ${it.name}">Annulla ultimo arrivo</button>
+        </div>`;
+      arrivalRows.set(n, row);
+    }
+    row.classList.toggle('complete', done === q);
+    row.querySelector('.arrival-state').textContent = `${done} di ${q} ${q === 1 ? 'porzione arrivata' : 'porzioni arrivate'}${done === q ? ' · Completo' : ''}`;
+    row.querySelector('[data-arrival-action="arrive"]').disabled = done === q;
+    row.querySelector('[data-arrival-action="undo"]').disabled = done === 0;
+    if (arrivalItems.children[index] !== row) arrivalItems.insertBefore(row, arrivalItems.children[index] || null);
+  });
+  document.getElementById('arrivalEmpty').hidden = list.length > 0;
+  const total = list.reduce((sum, [, q]) => sum + q, 0);
+  document.getElementById('arrivalProgress').textContent = `${delivered} di ${total} porzioni arrivate · ${total - delivered} in attesa`;
+  localStorage.setItem('marinaArrived', JSON.stringify(Object.fromEntries(arrived)));
+}
+arrivalItems.addEventListener('click', e => {
+  const button = e.target.closest('button[data-arrival-action]');
+  if (!button || mode !== 'table') return;
+  const n = Number(button.closest('[data-arrival-dish]').dataset.arrivalDish);
+  const done = arrived.get(n) || 0;
+  arrived.set(n, button.dataset.arrivalAction === 'arrive' ? Math.min(sel.get(n), done + 1) : Math.max(0, done - 1));
+  renderArrivals([...sel].sort((a, b) => a[0] - b[0]));
+});
+function setMode(next) {
+  mode = next;
+  document.body.dataset.mode = mode;
+  main.hidden = mode === 'table';
+  document.getElementById('tableView').hidden = mode !== 'table';
+  document.getElementById('q').hidden = mode === 'table';
+  document.getElementById('arrivalProgress').hidden = mode !== 'table';
+  document.getElementById('editMode').setAttribute('aria-pressed', mode === 'edit');
+  document.getElementById('tableMode').setAttribute('aria-pressed', mode === 'table');
+  localStorage.setItem('marinaMode', mode);
+  resizeFooter();
+  window.scrollTo(0, 0);
+}
+document.getElementById('editMode').onclick = () => setMode('edit');
+document.getElementById('tableMode').onclick = () => setMode('table');
+
 function update() {
   const list = [...sel].sort((a, b) => a[0] - b[0]);
   renderOrder(list);
+  renderArrivals(list);
   out.value = (userName ? userName + ': ' : '') + list.map(([n, q]) => q > 1 ? n + 'x' + q : n).join(',');
   const total = list.reduce((s, [, q]) => s + q, 0);
   const level = total > 16 ? 'high' : total >= 12 ? 'medium' : 'low';
@@ -221,7 +381,9 @@ new ResizeObserver(resizeFooter).observe(footer);
 resizeFooter();
 document.getElementById('copy').onclick = () => { out.select(); navigator.clipboard.writeText(out.value); };
 document.getElementById('clear').onclick = () => {
+  if (mode !== 'edit') return;
   sel.clear();
+  arrived.clear();
   Object.values(cards).forEach(c => c.render());
   update();
 };
@@ -232,6 +394,49 @@ document.getElementById('q').addEventListener('input', e => {
     s.style.display = [...s.querySelectorAll('label.card')].some(l => l.style.display !== 'none') ? '' : 'none';
   });
 });
+  const importDialog = document.getElementById('importDialog');
+  const importError = document.getElementById('importError');
+  document.getElementById('importButton').onclick = () => {
+    importError.hidden = true;
+    importDialog.showModal();
+    document.getElementById('importText').focus();
+  };
+  document.getElementById('cancelImport').onclick = () => importDialog.close();
+  document.getElementById('importForm').onsubmit = e => {
+    e.preventDefault();
+    const text = document.getElementById('importText').value.trim();
+    const separator = text.indexOf(':');
+    const name = separator >= 0 ? text.slice(0, separator).trim() : '';
+    const numbers = separator >= 0 ? text.slice(separator + 1) : text;
+    const imported = new Map();
+    const errors = [];
+    if (name.length > 40) errors.push('Il nome può contenere al massimo 40 caratteri.');
+    for (const token of numbers.split(/[,;\n]/)) {
+      const match = token.trim().match(/^(\d+)(?:\s*[x×]\s*(\d+))?$/i);
+      if (!match) { errors.push(`Voce non valida: «${token.trim() || '(vuota)'}». Usa ad esempio 2x3,5.`); continue; }
+      const n = Number(match[1]), q = Number(match[2] || 1);
+      const it = ITEMS.find(item => item.n === n);
+      if (!it) { errors.push(`Il piatto ${n} non esiste nel menu.`); continue; }
+      const total = (imported.get(n) || 0) + q;
+      if (!Number.isSafeInteger(q) || q < 1 || total > (it.star ? 1 : 99)) {
+        errors.push(`Quantità non valida per il piatto ${n}: da 1 a ${it.star ? 1 : 99}.`);
+        continue;
+      }
+      imported.set(n, total);
+    }
+    if (errors.length) {
+      importError.textContent = errors.join(' ');
+      importError.hidden = false;
+      return;
+    }
+    sel.clear();
+    arrived.clear();
+    for (const [n, q] of imported) sel.set(n, q);
+    Object.values(cards).forEach(c => c.render());
+    if (name) setName(name); else update();
+    setMode('edit');
+    importDialog.close();
+  };
 let userName = localStorage.getItem('marinaName') || '';
 const who = document.getElementById('who'), dlg = document.getElementById('nameDlg'), nameIn = document.getElementById('nameIn');
 function setName(n) {
@@ -249,6 +454,11 @@ document.getElementById('nameForm').onsubmit = e => {
 };
 who.onclick = askName;
 setName(userName);
+if (matchMedia('(max-width:600px)').matches) {
+  document.getElementById('trayDetails').open = false;
+  document.getElementById('orderTools').open = false;
+}
+setMode(localStorage.getItem('marinaMode') === 'table' ? 'table' : 'edit');
 if (!userName) askName();
 </script>
 </body>
