@@ -419,6 +419,67 @@
     .order-items, .order-empty, .tool-actions { border-top:0; border-radius:20px 20px 0 0; box-shadow:0 -8px 20px #8a3b1a1f; }
     .price { font-size:11px; }
   }
+  /* ===== Mascot: a restaurant customer that reacts to how much is ordered ===== */
+  .order-status svg { overflow:visible; }
+  .order-status.bump svg { animation:none; }
+  .order-status[data-level="high"] .person-skin { fill:#f7b6a0; }
+  #orderPerson *, #orderSkeleton * { transform-box:fill-box; }
+  .m-mover { transform-origin:50% 100%; }
+  .m-shadow { transform-origin:50% 50%; }
+  .m-arm-l { transform-origin:100% 0; }
+  .m-arm-r { transform-origin:0 0; }
+  .m-eyes { transform-origin:50% 50%; }
+  .m-mouth-open { transform-origin:50% 0; }
+  #orderBody { transform-origin:50% 100%; }
+  .m-arm-pos { transition:transform .3s; }
+  .m-eyes-happy, .m-mouth, .m-sweat, .m-chopsticks { display:none; }
+  /* low (8-11): relaxed, blinking, waving the chopsticks */
+  .m-eyes, .m-mouth-smile, .m-chopsticks { display:inline; }
+  .order-status[data-level="low"] .m-mover { animation:m-bob 2.4s ease-in-out infinite; }
+  .order-status[data-level="low"] .m-eyes { animation:m-blink 4s infinite; }
+  .order-status[data-level="low"] .m-arm-r { animation:m-wave 3.2s ease-in-out infinite; }
+  /* medium (12-16): happy jumps, cheering arms */
+  .order-status[data-level="medium"] .m-eyes, .order-status[data-level="medium"] .m-mouth-smile { display:none; }
+  .order-status[data-level="medium"] .m-eyes-happy, .order-status[data-level="medium"] .m-mouth-open { display:inline; }
+  .order-status[data-level="medium"] .m-mover { animation:m-jump 1.1s cubic-bezier(.3,.7,.4,1) infinite; }
+  .order-status[data-level="medium"] .m-shadow { animation:m-shadow 1.1s cubic-bezier(.3,.7,.4,1) infinite; }
+  .order-status[data-level="medium"] .m-arm-l { animation:m-cheer-l 1.1s ease-in-out infinite; }
+  .order-status[data-level="medium"] .m-arm-r { animation:m-cheer-r 1.1s ease-in-out infinite; }
+  /* high (>16): stuffed, swaying, sweating */
+  .order-status[data-level="high"] .m-mouth-smile, .order-status[data-level="high"] .m-chopsticks { display:none; }
+  .order-status[data-level="high"] .m-mouth-full, .order-status[data-level="high"] .m-sweat { display:inline; }
+  .order-status[data-level="high"] .m-arm-pos-l { transform:translate(-15px,4px) rotate(18deg); }
+  .order-status[data-level="high"] .m-arm-pos-r { transform:translate(15px,4px) rotate(-18deg); }
+  .order-status[data-level="high"] svg { color:#8f1d16; }
+  .order-status[data-level="high"] .m-mover { animation:m-sway 2.2s ease-in-out infinite alternate; }
+  .order-status[data-level="high"] #orderBody { animation:m-wobble .9s ease-in-out infinite alternate; }
+  .order-status[data-level="high"] .m-eyes { animation:m-blink 2.2s infinite; }
+  .order-status[data-level="high"] .m-sweat { animation:m-sweat 1.6s ease-in infinite; }
+  /* skeleton (<8): starving, shivering, teeth chattering */
+  .order-status[data-level="skeleton"] .s-body { transform-origin:50% 100%; animation:s-shiver .16s steps(2) infinite; }
+  .order-status[data-level="skeleton"] .s-jaw { animation:s-chatter .3s ease-in-out infinite; }
+  .order-status[data-level="skeleton"] .s-eye { transform-origin:50% 50%; animation:m-blink 3s infinite; }
+  /* a dish was just added: gnam! */
+  .order-status.bump .m-mouth { display:none; }
+  .order-status.bump .m-mouth-open { display:inline; animation:m-chomp .22s ease-in-out 3; }
+  .order-status.bump .m-mover { animation:m-hop .5s cubic-bezier(.3,1.6,.5,1); }
+  .order-status.bump .s-body { animation:m-hop .5s cubic-bezier(.3,1.6,.5,1); }
+  @media (max-width:600px) { header > .order-status svg { width:28px; height:34px; } }
+  @media (min-width:601px) { .order-status svg { width:44px; height:54px; } }
+  @keyframes m-bob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2px); } }
+  @keyframes m-blink { 0%,90%,100% { transform:scaleY(1); } 95% { transform:scaleY(.1); } }
+  @keyframes m-wave { 0%,55%,100% { transform:rotate(0); } 65% { transform:rotate(-70deg); } 75% { transform:rotate(-40deg); } 85% { transform:rotate(-70deg); } }
+  @keyframes m-jump { 0%,100% { transform:translateY(0) scale(1.06,.94); } 20% { transform:translateY(0) scale(1); } 50% { transform:translateY(-10px) scale(.96,1.04); } 80% { transform:translateY(0) scale(1); } }
+  @keyframes m-shadow { 0%,100% { transform:scale(1); opacity:.15; } 50% { transform:scale(.6); opacity:.08; } }
+  @keyframes m-cheer-l { 0%,100% { transform:rotate(20deg); } 50% { transform:rotate(130deg); } }
+  @keyframes m-cheer-r { 0%,100% { transform:rotate(-20deg); } 50% { transform:rotate(-130deg); } }
+  @keyframes m-sway { from { transform:rotate(-5deg); } to { transform:rotate(5deg); } }
+  @keyframes m-wobble { from { transform:scaleX(1); } to { transform:scaleX(1.05) scaleY(.98); } }
+  @keyframes m-sweat { 0% { transform:translateY(0); opacity:0; } 20% { opacity:1; } 100% { transform:translateY(14px); opacity:0; } }
+  @keyframes m-chomp { 0%,100% { transform:scaleY(1); } 50% { transform:scaleY(.2); } }
+  @keyframes m-hop { 0%,100% { transform:translateY(0); } 40% { transform:translateY(-8px) rotate(-6deg); } 70% { transform:translateY(0) scale(1.05,.95); } }
+  @keyframes s-shiver { 0% { transform:translateX(-.8px) rotate(-1.5deg); } 100% { transform:translateX(.8px) rotate(1.5deg); } }
+  @keyframes s-chatter { 0%,100% { transform:translateY(0); } 50% { transform:translateY(1.6px); } }
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation:none !important; transition:none !important; }
   }
@@ -476,19 +537,44 @@
   <div id="orderStatus" class="order-status" data-level="low" role="status" aria-live="polite" aria-atomic="true">
     <svg viewBox="0 0 80 96" fill="none" aria-hidden="true" focusable="false">
       <g id="orderPerson">
-      <circle class="person-skin" cx="40" cy="15" r="11" fill="#f3cfab" stroke="currentColor" stroke-width="2"/>
-      <path d="M35 17 Q40 22 45 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="36" cy="12" r="1.5" fill="currentColor"/>
-      <circle cx="44" cy="12" r="1.5" fill="currentColor"/>
-      <path d="M28 34 L18 55 M52 34 L62 55 M33 72 L30 90 M47 72 L50 90" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-      <path id="orderBody" d="M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z" fill="#f4d7ae" stroke="currentColor" stroke-width="2"/>
+        <ellipse class="m-shadow" cx="40" cy="92" rx="15" ry="2.6" fill="#1f3b30" opacity=".15"/>
+        <g class="m-mover">
+          <g class="m-legs" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M34 72 L32 89"/><path d="M46 72 L48 89"/></g>
+          <g class="m-arm-pos m-arm-pos-l"><g class="m-arm m-arm-l"><path d="M31 36 L20 54" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></g></g>
+          <g class="m-arm-pos m-arm-pos-r"><g class="m-arm m-arm-r">
+            <path d="M49 36 L60 54" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+            <path class="m-chopsticks" d="M58 55 L71 37 M61 56 L74 40" stroke="#9a5b2a" stroke-width="1.8" stroke-linecap="round"/>
+          </g></g>
+          <path id="orderBody" d="M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z" fill="#2e6b55" stroke="currentColor" stroke-width="2"/>
+          <path class="m-napkin" d="M33.5 30.5 L46.5 30.5 L40 43 Z" fill="#fff" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+          <path class="m-napkin-dots" d="M37.5 33.5 h.01 M42.5 33.5 h.01 M40 37.5 h.01" stroke="#d63e2f" stroke-width="1.8" stroke-linecap="round"/>
+          <g class="m-head">
+            <circle class="person-skin" cx="40" cy="17" r="12" fill="#f8d6b6" stroke="currentColor" stroke-width="2"/>
+            <path class="m-hair" d="M28.6 14.5 C28 5 38 3 42 5.5 C45 3.5 52.5 6 51.5 14.5 C48 10.5 44 9.5 40.5 10.5 C36 9 31.5 10.5 28.6 14.5 Z" fill="#5a3a26" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            <path class="m-tuft" d="M40 5.5 Q41 1 44.5 1.5" stroke="#5a3a26" stroke-width="1.8" stroke-linecap="round"/>
+            <g class="m-eyes" fill="currentColor"><circle cx="35.5" cy="18.5" r="1.7"/><circle cx="44.5" cy="18.5" r="1.7"/></g>
+            <path class="m-eyes-happy" d="M33.3 19 Q35.5 16.2 37.7 19 M42.3 19 Q44.5 16.2 46.7 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <circle class="m-cheek" cx="32.5" cy="22.3" r="2.1" fill="#f59a86" opacity=".75"/>
+            <circle class="m-cheek" cx="47.5" cy="22.3" r="2.1" fill="#f59a86" opacity=".75"/>
+            <path class="m-mouth m-mouth-smile" d="M36.5 22.5 Q40 26 43.5 22.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path class="m-mouth m-mouth-open" d="M35.8 22 Q40 29.5 44.2 22 Z" fill="#8a2c20" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            <path class="m-mouth m-mouth-full" d="M35 24 q1.25 -1.6 2.5 0 t2.5 0 t2.5 0 t2.5 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </g>
+          <path class="m-sweat" d="M55 20 Q58.5 25 55 27.5 Q51.5 25 55 20 Z" fill="#7fd0ff" stroke="#2a7bbf" stroke-width=".8"/>
+        </g>
       </g>
       <g id="orderSkeleton" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M29 17 C25 1 55 1 51 17 L48 24 H32 Z" fill="#111"/>
-        <circle cx="35" cy="13" r="3" fill="#fff" stroke="none"/>
-        <circle cx="45" cy="13" r="3" fill="#fff" stroke="none"/>
-        <path d="M38 20 L40 17 L42 20 M36 25 H44" stroke="#fff" stroke-width="1.5"/>
-        <path d="M40 27 V64 M29 32 H51 M40 38 Q23 30 28 41 Q32 46 40 44 Q48 46 52 41 Q57 30 40 38 M40 48 Q25 40 29 49 Q33 54 40 53 Q47 54 51 49 Q55 40 40 48 M29 33 L20 48 L17 62 M51 33 L60 48 L63 62 M31 60 L40 66 L49 60 L46 71 H34 Z M35 72 L30 89 M45 72 L50 89 M26 91 H33 M47 91 H54"/>
+        <ellipse cx="40" cy="92" rx="15" ry="2.6" fill="#1f3b30" opacity=".15" stroke="none"/>
+        <g class="s-body">
+          <g class="s-skull">
+            <path d="M29 17 C25 1 55 1 51 17 L48 23 H32 Z" fill="#111"/>
+            <circle class="s-eye" cx="35" cy="13" r="3" fill="#fff" stroke="none"/>
+            <circle class="s-eye" cx="45" cy="13" r="3" fill="#fff" stroke="none"/>
+            <path d="M38 20 L40 17 L42 20" stroke="#fff" stroke-width="1.5"/>
+          </g>
+          <path class="s-jaw" d="M33 24.5 H47 M36 24.5 V27 M40 24.5 V27 M44 24.5 V27" stroke-width="2.4"/>
+          <path d="M40 28 V64 M29 32 H51 M40 38 Q23 30 28 41 Q32 46 40 44 Q48 46 52 41 Q57 30 40 38 M40 48 Q25 40 29 49 Q33 54 40 53 Q47 54 51 49 Q55 40 40 48 M29 33 L20 48 L17 62 M51 33 L60 48 L63 62 M31 60 L40 66 L49 60 L46 71 H34 Z M35 72 L30 89 M45 72 L50 89 M26 91 H33 M47 91 H54"/>
+        </g>
       </g>
     </svg>
     <div>
@@ -777,6 +863,8 @@ function update() {
   const countEl = document.getElementById('count'), statusEl = document.getElementById('orderStatus');
   if (countEl.textContent !== String(total) && update.ready && !reduceMotion.matches) {
     for (const el of [countEl, statusEl]) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+    clearTimeout(update.bumpTimer);
+    update.bumpTimer = setTimeout(() => statusEl.classList.remove('bump'), 700);
   }
   update.ready = true;
   if (statusEl.dataset.level !== (total > 16 ? 'high' : total >= 12 ? 'medium' : total >= 8 ? 'low' : 'skeleton') || !update.msg) {
