@@ -464,7 +464,20 @@
   .order-status.bump .m-mouth-open { display:inline; animation:m-chomp .22s ease-in-out 3; }
   .order-status.bump .m-mover { animation:m-hop .5s cubic-bezier(.3,1.6,.5,1); }
   .order-status.bump .s-body { animation:m-hop .5s cubic-bezier(.3,1.6,.5,1); }
-  @media (max-width:600px) { header > .order-status svg { width:28px; height:34px; } }
+  @media (max-width:600px) {
+    header > .order-status svg { width:30px; height:36px; transform-origin:50% 100%; }
+    /* The icon is tiny here, so move the whole figure in real pixels to keep the animation visible. */
+    header > .order-status[data-level="skeleton"] svg { animation:px-shiver .13s linear infinite alternate; }
+    header > .order-status[data-level="low"] svg { animation:px-bob 1.8s ease-in-out infinite; }
+    header > .order-status[data-level="medium"] svg { animation:px-jump .9s cubic-bezier(.3,.7,.4,1) infinite; }
+    header > .order-status[data-level="high"] svg { animation:px-sway 1.4s ease-in-out infinite alternate; }
+    header > .order-status.bump svg { animation:px-hop .5s cubic-bezier(.3,1.6,.5,1); }
+  }
+  @keyframes px-shiver { from { transform:translateX(-1.2px) rotate(-6deg); } to { transform:translateX(1.2px) rotate(6deg); } }
+  @keyframes px-bob { 0%,100% { transform:translateY(0) rotate(0); } 25% { transform:translateY(-2px) rotate(-8deg); } 50% { transform:translateY(-4px) rotate(0); } 75% { transform:translateY(-2px) rotate(8deg); } }
+  @keyframes px-jump { 0%,100% { transform:translateY(0) scale(1.12,.88); } 20% { transform:translateY(0) scale(1); } 50% { transform:translateY(-8px) scale(.94,1.06) rotate(-4deg); } 80% { transform:translateY(0) scale(1); } }
+  @keyframes px-sway { from { transform:rotate(-12deg) scaleX(1); } to { transform:rotate(12deg) scaleX(1.08); } }
+  @keyframes px-hop { 0%,100% { transform:translateY(0) scale(1); } 40% { transform:translateY(-9px) scale(1.25) rotate(-10deg); } 70% { transform:translateY(0) scale(1.1,.9); } }
   @media (min-width:601px) { .order-status svg { width:44px; height:54px; } }
   @keyframes m-bob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2px); } }
   @keyframes m-blink { 0%,90%,100% { transform:scaleY(1); } 95% { transform:scaleY(.1); } }
