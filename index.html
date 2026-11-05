@@ -146,6 +146,68 @@
     .order-controls button { width:32px; min-width:32px; height:32px; min-height:32px; }
     .order-controls { gap:6px; }
   }
+  html { scroll-padding-top:170px; -webkit-text-size-adjust:100%; }
+  button, summary, label.card { touch-action:manipulation; }
+  input:focus-visible, textarea:focus-visible, summary:focus-visible { outline:2px solid #754315; outline-offset:3px; }
+  .order-items { overscroll-behavior-x:contain; }
+  .arrival-photo { flex-shrink:0; }
+  #nameDlg { padding:12px; overflow-y:auto; }
+  #nameForm { max-height:calc(100dvh - 24px); overflow-y:auto; }
+  #importError { overflow-wrap:anywhere; }
+  #q, #out, #importText, #nameIn { max-width:100%; }
+  @media (max-width:900px) and (min-width:601px) {
+    header { gap:8px; }
+    #q { order:2; flex:1 0 100%; font-size:16px; }
+    #who { margin-left:auto; max-width:35%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mode-switch { margin-left:auto; }
+  }
+  @media (max-width:600px) {
+    header { padding-top:max(8px,env(safe-area-inset-top)); }
+    h1 { font-size:20px; flex-shrink:0; }
+    #who { max-width:calc(100% - 145px); font-size:13px; padding:8px; }
+    #q { min-width:0; }
+    .mode-switch button { padding:8px; }
+    .num { margin-right:4px; padding:1px 5px; }
+    .price { color:#666; }
+    .ing { color:#765435; line-height:1.45; }
+    label.card { display:flex; flex-direction:column; }
+    label.card .info { flex:1; }
+    label.card .qty { width:100%; margin-top:4px; }
+    label.card .qty b { min-width:18px; }
+    label.card .price { margin-bottom:4px; }
+    .order-status { min-width:0; }
+    .order-status > div { min-width:0; }
+    .order-status p { font-size:12px; }
+    .order-tray { min-width:0; }
+    .order-items { scroll-snap-type:x proximity; }
+    .order-item { scroll-snap-align:start; }
+    footer { max-height:45dvh; overscroll-behavior-y:contain; }
+    .order-tray summary, .order-tools summary { min-height:40px; }
+    #out { overflow-wrap:anywhere; white-space:pre-wrap; resize:none; height:64px; }
+    .tool-actions button { min-width:76px; }
+    #tableView .grid { grid-template-columns:minmax(0,1fr); gap:10px; }
+    .arrival-intro { font-size:14px; margin:12px 0; }
+    .arrival-card { flex-direction:row; align-items:stretch; }
+    .arrival-photo { width:88px; align-self:flex-start; }
+    .arrival-card img { aspect-ratio:1; }
+    .arrival-card .info { min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; align-content:start; }
+    .arrival-card h3, .arrival-card p { grid-column:1 / -1; margin:0; overflow-wrap:anywhere; }
+    .arrival-card h3 { font-size:15px; }
+    .arrival-card p { font-size:13px; }
+    .arrival-card button, .arrival-card button:first-of-type { margin:0; min-height:44px; padding:6px; font-size:13px; line-height:1.25; }
+    #arrivalProgress { font-size:13px; }
+    dialog { padding:16px; max-height:calc(100dvh - 24px); }
+    dialog h2 { font-size:22px; }
+    dialog p, dialog label { font-size:14px; line-height:1.45; }
+    .dialog-actions { flex-direction:column; }
+    .dialog-actions button { width:100%; }
+  }
+  @media (max-height:500px) and (orientation:landscape) {
+    header { position:relative; }
+    footer { max-height:40dvh; }
+    .arrival-intro { margin:10px 0; }
+    dialog { max-height:calc(100dvh - 16px); }
+  }
 </style>
 </head>
 <body>
@@ -344,8 +406,8 @@ function renderArrivals(list) {
         </div>
         <div class="info"><h3>${n} · ${it.name}</h3>
           <p class="arrival-state"></p>
-          <button type="button" data-arrival-action="arrive" aria-label="Segna una porzione arrivata di ${n}: ${it.name}">Segna una porzione arrivata</button>
-          <button type="button" class="undo" data-arrival-action="undo" aria-label="Annulla un arrivo di ${n}: ${it.name}">Annulla ultimo arrivo</button>
+          <button type="button" data-arrival-action="arrive" aria-label="Segna una porzione arrivata di ${n}: ${it.name}">Segna +1 arrivata</button>
+          <button type="button" class="undo" data-arrival-action="undo" aria-label="Annulla un arrivo di ${n}: ${it.name}">Annulla arrivo</button>
         </div>`;
       arrivalRows.set(n, row);
     }
