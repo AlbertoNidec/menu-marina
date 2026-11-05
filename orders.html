@@ -26,7 +26,9 @@
   #errors p { margin:4px 0; }
   #result { margin-top:28px; }
   #tableNumber { padding:8px; max-width:180px; font:16px system-ui; border:1px solid #ad8c6c; border-radius:6px; }
-  .sheet-preview { overflow-x:auto; }
+  .sheet-preview { display:none; }
+  #mergedList { min-height:90px; }
+  #copyStatus:empty, #notice:empty { display:none; }
   .order-sheet { width:105mm; height:148mm; padding:7mm 5mm 4mm; margin:0 auto 20px; background:#fff; color:#000; font-family:Arial,sans-serif; display:flex; flex-direction:column; border:1px solid #ccc; }
   .sheet-heading { display:flex; justify-content:flex-end; align-items:center; gap:5mm; margin-bottom:1.5mm; }
   .sheet-heading h3 { margin:0; font-family:"Lilita One",sans-serif; font-size:16px; font-weight:400; white-space:nowrap; }
@@ -53,8 +55,8 @@
     header, #editor { display:none; }
     main { padding:0; max-width:none; }
     #result { margin:0; }
-    #resultTitle, #summary { display:none; }
-    .sheet-preview { overflow:visible; }
+    #resultTitle, #summary, .result-list { display:none; }
+    .sheet-preview { display:block; overflow:visible; }
     .order-sheet { border:0; margin:0 auto; break-after:page; break-inside:avoid; }
     .order-sheet:last-child { break-after:auto; }
   }
@@ -83,8 +85,14 @@
     <p id="notice" role="status"></p>
   </section>
   <section id="result" aria-labelledby="resultTitle" hidden>
-    <h2 id="resultTitle">Menu Marina · Ordine del gruppo</h2>
+    <h2 id="resultTitle">Lista unificata</h2>
     <p id="summary"></p>
+    <div class="result-list">
+      <label for="mergedList">Numeri dei piatti e quantità totali</label>
+      <textarea id="mergedList" readonly></textarea>
+      <div class="actions"><button id="copyMerged" type="button">Copia lista</button></div>
+      <p id="copyStatus" role="status"></p>
+    </div>
     <div id="sheets" class="sheet-preview"></div>
   </section>
 </main>
@@ -137,6 +145,8 @@ function invalidate(message) {
   notice.textContent = message;
   errors.hidden = true;
   errors.replaceChildren();
+  document.getElementById('mergedList').value = '';
+  document.getElementById('copyStatus').textContent = '';
 }
 lists.addEventListener('input', () => invalidate('Lista modificata: premi «Unisci liste» per aggiornare la stampa.'));
 document.getElementById('tableNumber').addEventListener('input', () => {
@@ -199,11 +209,24 @@ document.getElementById('mergeForm').onsubmit = e => {
     return;
   }
   renderSheets(merged.totals);
+  document.getElementById('mergedList').value = merged.totals.map(([n, q]) => q > 1 ? `${n}x${q}` : String(n)).join(',');
   const total = merged.totals.reduce((sum, [, q]) => sum + q, 0);
   document.getElementById('summary').textContent = `${merged.people} liste · ${merged.totals.length} piatti diversi · ${total} porzioni totali`;
   result.hidden = false;
   printButton.disabled = false;
-  notice.textContent = 'Tabella pronta. Premi «Stampa / Salva PDF» per stampare o scegliere il salvataggio in PDF.';
+  notice.textContent = '';
+};
+document.getElementById('copyMerged').onclick = async () => {
+  const field = document.getElementById('mergedList');
+  field.focus();
+  field.select();
+  try {
+    await navigator.clipboard.writeText(field.value);
+    document.getElementById('copyStatus').textContent = 'Lista copiata.';
+  } catch (error) {
+    console.error('Copia della lista non riuscita:', error);
+    document.getElementById('copyStatus').textContent = 'Copia automatica non disponibile. La lista è selezionata: copiala dal menu del dispositivo o con Ctrl+C.';
+  }
 };
 printButton.onclick = async () => {
   if (printButton.disabled) return;
