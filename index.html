@@ -28,12 +28,13 @@
   .qty button { width:32px; height:32px; padding:0; font-size:18px; }
   .qty b { min-width:24px; text-align:center; }
   label.card.sel { border-color:var(--accent); background:#fff4e6; }
-  footer { position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:2px solid var(--accent); padding:10px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; z-index:6; }
+  footer { position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:2px solid var(--accent); padding:10px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; z-index:6; max-height:60vh; overflow-y:auto; }
   #out { flex:1; min-width:200px; height:64px; padding:8px; font:14px monospace; border:1px solid #ccc; border-radius:8px; resize:vertical; }
   button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 14px; font-size:14px; cursor:pointer; }
   button.sec { background:#888; }
   .count { font-weight:700; }
-  .order-status { flex:1 0 100%; display:flex; align-items:center; gap:12px; color:#533b27; }
+  .order-summary { flex:1 0 100%; display:flex; align-items:center; gap:16px; min-width:0; flex-wrap:wrap; }
+  .order-status { flex:0 1 340px; display:flex; align-items:center; gap:12px; color:#533b27; }
   .order-status svg { flex:none; width:52px; height:64px; }
   .order-status strong { font-size:18px; }
   .order-status p { margin:3px 0 0; font-size:14px; }
@@ -41,6 +42,19 @@
   .order-status[data-level="high"] .order-message { font-weight:700; }
   .order-status[data-level="high"] svg { color:#b94b18; }
   .order-status small { display:block; margin-top:3px; font-size:12px; }
+  .order-tray { flex:1 1 280px; min-width:0; }
+  .order-items { display:flex; gap:12px; overflow-x:auto; padding:4px 2px 8px; margin:0; list-style:none; }
+  .order-item { flex:0 0 136px; min-width:0; position:relative; }
+  .order-item img { display:block; width:136px; height:76px; object-fit:cover; border-radius:6px; }
+  .order-item-name { display:block; margin:5px 0; font-size:13px; line-height:1.3; color:#533b27; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .order-item .remove { position:absolute; top:0; right:0; min-width:32px; height:32px; padding:0; background:#fff; color:#85320d; border:1px solid #85320d; font-weight:700; }
+  .order-controls { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .order-controls button { width:36px; height:32px; padding:0; font-size:18px; background:#9b4b10; }
+  .order-controls output { font-weight:700; color:#533b27; }
+  button:disabled { background:#eee; color:#666; cursor:not-allowed; }
+  button:focus-visible { outline:3px solid #533b27; outline-offset:2px; }
+  .order-empty { margin:0; font-size:14px; color:#694a30; }
+  .order-empty[hidden], .order-items[hidden] { display:none; }
 </style>
 </head>
 <body>
@@ -58,6 +72,7 @@
 </div>
 <main id="main"></main>
 <footer>
+  <div class="order-summary">
   <div id="orderStatus" class="order-status" data-level="low" role="status" aria-live="polite" aria-atomic="true">
     <svg viewBox="0 0 80 96" fill="none" aria-hidden="true" focusable="false">
       <circle cx="40" cy="15" r="11" fill="#f3cfab" stroke="currentColor" stroke-width="2"/>
@@ -71,6 +86,11 @@
       <strong><span class="count" id="count">0</span> <span id="countLabel">piatti ordinati</span></strong>
       <p id="orderMessage" class="order-message">Il menu ti aspetta!</p>
       <small>Il totale comprende le quantità di ciascun piatto.</small>
+    </div>
+  </div>
+      <div class="order-tray" role="region" aria-label="Piatti ordinati">
+        <p id="orderEmpty" class="order-empty">Seleziona un piatto: lo ritroverai qui con foto e quantità.</p>
+        <ul id="orderItems" class="order-items" aria-label="Riepilogo dei piatti ordinati" hidden></ul>
     </div>
   </div>
   <textarea id="out" readonly placeholder="Numeri selezionati (CSV)"></textarea>
@@ -105,6 +125,7 @@ for (const c of cats) {
       cb.checked = q > 0;
       qb.textContent = q;
       l.classList.toggle('sel', q > 0);
+      l.querySelector('.plus').disabled = q >= (it.star ? 1 : 99);
     };
     const setQty = q => {
       q = it.star ? Math.min(q, 1) : Math.min(q, 99);
@@ -115,14 +136,62 @@ for (const c of cats) {
     l.querySelector('.plus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) + 1); };
     l.querySelector('.minus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) - 1); };
     render();
-    cards[it.n] = { el: l, render, text: (it.n + ' ' + it.name + ' ' + it.cat).toLowerCase(), sec };
+    cards[it.n] = { el: l, render, setQty, text: (it.n + ' ' + it.name + ' ' + it.cat).toLowerCase(), sec };
     grid.appendChild(l);
   }
   main.appendChild(sec);
 }
 
+const orderItems = document.getElementById('orderItems');
+const orderRows = new Map();
+function renderOrder(list) {
+  const activeRow = document.activeElement.closest('[data-dish]');
+  const activeIndex = activeRow ? [...orderItems.children].indexOf(activeRow) : -1;
+  for (const [n, row] of orderRows) {
+    if (!sel.has(n)) {
+      row.remove();
+      orderRows.delete(n);
+    }
+  }
+  list.forEach(([n, q], index) => {
+    let row = orderRows.get(n);
+    if (!row) {
+      const it = ITEMS.find(item => item.n === n);
+      row = document.createElement('li');
+      row.className = 'order-item';
+      row.dataset.dish = n;
+      row.innerHTML = `<img src="${it.img}" alt="${it.name}">
+        <button type="button" class="remove" data-action="remove" aria-label="Rimuovi ${n}: ${it.name}">X</button>
+        <span class="order-item-name" title="${n} · ${it.name}">${n} · ${it.name}</span>
+        <div class="order-controls">
+          <button type="button" data-action="minus" aria-label="Togli una porzione di ${n}: ${it.name}">−</button>
+          <output aria-label="Quantità di ${n}: ${it.name}"></output>
+          <button type="button" data-action="plus" aria-label="Aggiungi una porzione di ${n}: ${it.name}" title="${it.star ? 'Massimo una porzione a persona' : 'Aggiungi una porzione'}">+</button>
+        </div>`;
+      orderRows.set(n, row);
+    }
+    row.querySelector('output').textContent = q;
+    row.querySelector('[data-action="plus"]').disabled = q >= (ITEMS.find(it => it.n === n).star ? 1 : 99);
+    if (orderItems.children[index] !== row) orderItems.insertBefore(row, orderItems.children[index] || null);
+  });
+  orderItems.hidden = list.length === 0;
+  document.getElementById('orderEmpty').hidden = list.length > 0;
+  if (activeRow && !activeRow.isConnected) {
+    const next = orderItems.children[Math.min(activeIndex, list.length - 1)];
+    (next ? next.querySelector('button') : document.getElementById('clear')).focus({ preventScroll:true });
+  }
+}
+orderItems.addEventListener('click', e => {
+  const button = e.target.closest('button[data-action]');
+  if (!button) return;
+  const n = Number(button.closest('[data-dish]').dataset.dish);
+  const q = sel.get(n) || 0;
+  cards[n].setQty(button.dataset.action === 'remove' ? 0 : q + (button.dataset.action === 'plus' ? 1 : -1));
+});
+
 function update() {
   const list = [...sel].sort((a, b) => a[0] - b[0]);
+  renderOrder(list);
   out.value = (userName ? userName + ': ' : '') + list.map(([n, q]) => q > 1 ? n + 'x' + q : n).join(',');
   const total = list.reduce((s, [, q]) => s + q, 0);
   const level = total > 16 ? 'high' : total >= 12 ? 'medium' : 'low';
