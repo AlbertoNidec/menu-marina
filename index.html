@@ -268,12 +268,33 @@
     header:has(.order-status[data-level="high"]) { padding-bottom:40px; }
     header > .order-status[data-level="high"] p { display:block; position:absolute; bottom:4px; left:10px; right:10px; margin:0; font-size:11px; line-height:1.3; }
   }
+  /* Category navigation */
+  .cat-nav { flex:1 0 100%; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:2px 0 4px; margin:0 -4px; overscroll-behavior-x:contain; }
+  .cat-nav::-webkit-scrollbar { display:none; }
+  .cat-nav a { flex:none; display:inline-flex; align-items:center; gap:4px; min-height:32px; padding:4px 12px; border:1px solid #d9c8b7; border-radius:999px; background:#fff; color:#754315; font-size:13px; text-decoration:none; white-space:nowrap; }
+  .cat-nav a.active { background:#9b4b10; border-color:#9b4b10; color:#fff; }
+  .cat-nav a b { min-width:18px; padding:0 5px; border-radius:9px; background:var(--accent); color:#fff; font-size:11px; text-align:center; }
+  .cat-nav a.active b { background:#fff; color:#9b4b10; }
+  .cat-nav a:focus-visible { outline:2px solid #533b27; outline-offset:1px; }
+  body[data-mode="table"] .cat-nav { display:none; }
+  .search-empty { margin:32px 0; text-align:center; color:#694a30; }
+  .toast { position:fixed; left:50%; top:max(12px,env(safe-area-inset-top)); max-width:calc(100vw - 32px); text-align:center; transform:translateX(-50%); z-index:30; padding:10px 16px; border-radius:8px; background:#2b2b2b; color:#fff; font-size:14px; box-shadow:0 4px 12px #0003; pointer-events:none; opacity:0; transition:opacity .2s; }
+  .toast.show { opacity:1; }
+  @media (max-width:600px) {
+    .cat-nav { grid-column:1 / -1; grid-row:3; margin:0; padding:0 0 4px; }
+    .cat-nav a { min-height:34px; }
+    header:has(.order-status[data-level="high"]) .cat-nav { grid-row:4; }
+    header > .order-status .count::after { content:none; }
+    header > .order-status #countLabel { display:inline; }
+    #who::before { content:"👤 "; }
+  }
+  @media (prefers-reduced-motion:reduce) { .toast { transition:none; } }
 </style>
 </head>
 <body>
 <header>
   <h1>Menu Marina</h1>
-  <input id="q" type="search" placeholder="Cerca per numero o nome…">
+  <input id="q" type="search" placeholder="Cerca numero, nome o ingrediente…" aria-label="Cerca nel menu" enterkeyhint="search" autocomplete="off">
   <nav class="mode-switch" aria-label="Modalità del menu">
     <button id="editMode" type="button" aria-pressed="true">Ordina</button>
     <button id="tableMode" type="button" aria-pressed="false">Al tavolo</button>
@@ -285,7 +306,9 @@
       <a class="group-orders" href="orders.html">Unisci ordini del gruppo</a>
     </div>
   </details>
+  <nav id="catNav" class="cat-nav" aria-label="Categorie del menu"></nav>
 </header>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="nameDlg" style="display:none;position:fixed;inset:0;background:#000a;z-index:20;align-items:center;justify-content:center">
   <form id="nameForm" style="background:#fff;padding:24px;border-radius:12px;display:flex;flex-direction:column;gap:12px;width:min(90vw,340px)">
     <h2 style="margin:0;border:0">Come ti chiami?</h2>
@@ -293,7 +316,7 @@
     <button type="submit">Entra</button>
   </form>
 </div>
-<main id="main"></main>
+<main id="main"><p id="searchEmpty" class="search-empty" hidden>Nessun piatto trovato. Prova con un altro numero o nome.</p></main>
 <main id="tableView" hidden>
   <h2>Il tuo ordine al tavolo</h2>
   <p class="arrival-intro">Qui l'ordine non si modifica. Segna ogni porzione quando arriva; se sbagli, puoi annullare l'ultimo arrivo.</p>
@@ -367,8 +390,34 @@ const main = document.getElementById('main'), out = document.getElementById('out
 const cats = [...new Set(ITEMS.map(i => i.cat))];
 const cards = {};
 
+const catNav = document.getElementById('catNav');
+const catLinks = new Map();
+// While a tapped category is scrolling into view, keep it highlighted.
+let pinnedCat = null, unpinTimer;
+cats.forEach((c, i) => {
+  const a = document.createElement('a');
+  a.href = '#cat-' + i;
+  a.innerHTML = `<span>${c}</span><b hidden></b>`;
+  a.onclick = e => {
+    e.preventDefault();
+    pinnedCat = c;
+    clearTimeout(unpinTimer);
+    unpinTimer = setTimeout(() => pinnedCat = null, 400);
+    document.getElementById('cat-' + i).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' });
+    setActiveCat(c);
+  };
+  catNav.appendChild(a);
+  catLinks.set(c, a);
+});
+function setActiveCat(c) {
+  for (const [name, a] of catLinks) a.classList.toggle('active', name === c);
+  const a = catLinks.get(c);
+  if (a) catNav.scrollTo({ left: a.offsetLeft - catNav.offsetLeft - catNav.clientWidth / 2 + a.offsetWidth / 2, behavior: 'smooth' });
+}
 for (const c of cats) {
   const sec = document.createElement('section');
+  sec.id = 'cat-' + cats.indexOf(c);
+  sec.dataset.cat = c;
   sec.innerHTML = `<h2>${c}</h2><div class="grid"></div>`;
   const grid = sec.querySelector('.grid');
   for (const it of ITEMS.filter(i => i.cat === c)) {
@@ -398,7 +447,7 @@ for (const c of cats) {
     l.querySelector('.plus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) + 1); };
     l.querySelector('.minus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) - 1); };
     render();
-    cards[it.n] = { el: l, render, setQty, text: (it.n + ' ' + it.name + ' ' + it.cat).toLowerCase(), sec };
+    cards[it.n] = { el: l, render, setQty, n: it.n, cat: c, text: (it.name + ' ' + it.cat + ' ' + it.ing).toLowerCase(), sec };
     grid.appendChild(l);
   }
   main.appendChild(sec);
@@ -517,6 +566,7 @@ function setMode(next) {
   localStorage.setItem('marinaMode', mode);
   resizeFooter();
   window.scrollTo(0, 0);
+  if (typeof spyCategory === 'function' && mode === 'edit') requestAnimationFrame(spyCategory);
 }
 document.getElementById('editMode').onclick = () => setMode('edit');
 document.getElementById('tableMode').onclick = () => setMode('table');
@@ -529,7 +579,17 @@ function update() {
   const total = list.reduce((s, [, q]) => s + q, 0);
   const level = total > 16 ? 'high' : total >= 12 ? 'medium' : total >= 8 ? 'low' : 'skeleton';
   document.getElementById('count').textContent = total;
-  document.getElementById('countLabel').textContent = total === 1 ? 'piatto ordinato' : 'piatti ordinati';
+  document.getElementById('countLabel').textContent = matchMedia('(max-width:600px)').matches
+    ? (total === 1 ? 'piatto' : 'piatti')
+    : (total === 1 ? 'piatto ordinato' : 'piatti ordinati');
+  const perCat = new Map();
+  for (const [n, q] of list) { const c = cards[n].cat; perCat.set(c, (perCat.get(c) || 0) + q); }
+  for (const [c, a] of catLinks) {
+    const b = a.querySelector('b'), q = perCat.get(c) || 0;
+    b.hidden = !q;
+    b.textContent = q;
+    a.setAttribute('aria-label', q ? `${c}: ${q} ${q === 1 ? 'porzione scelta' : 'porzioni scelte'}` : c);
+  }
   document.getElementById('orderStatus').dataset.level = level;
   document.getElementById('orderMessage').textContent = level === 'high'
     ? 'Probabilmente stai ordinando troppo. Anche le bacchette chiedono una pausa!'
@@ -544,7 +604,8 @@ function update() {
 }
 const footer = document.querySelector('footer');
 const resizeFooter = () => {
-  document.body.style.paddingBottom = (footer.getBoundingClientRect().height + 24) + 'px';
+  const h = footer.getBoundingClientRect().height;
+  document.body.style.paddingBottom = (h + 24) + 'px';
 };
 new ResizeObserver(resizeFooter).observe(footer);
 resizeFooter();
@@ -554,9 +615,47 @@ for (const id of ['trayDetails', 'orderTools']) {
     document.getElementById(id === 'trayDetails' ? 'orderTools' : 'trayDetails').open = false;
   });
 }
-document.getElementById('copy').onclick = () => { out.select(); navigator.clipboard.writeText(out.value); };
+const header = document.querySelector('header');
+const resizeHeader = () => {
+  document.documentElement.style.scrollPaddingTop = (header.offsetHeight + 8) + 'px';
+};
+new ResizeObserver(resizeHeader).observe(header);
+let spyQueued = false;
+function spyCategory() {
+  spyQueued = false;
+  if (mode !== 'edit' || pinnedCat) return;
+  const limit = header.offsetHeight + 24;
+  let current = null;
+  for (const s of main.querySelectorAll('section')) {
+    if (s.style.display === 'none') continue;
+    if (!current || s.getBoundingClientRect().top <= limit) current = s.dataset.cat; else break;
+  }
+  if (current && !catLinks.get(current).classList.contains('active')) setActiveCat(current);
+}
+addEventListener('scroll', () => {
+  if (pinnedCat) { clearTimeout(unpinTimer); unpinTimer = setTimeout(() => pinnedCat = null, 250); }
+  if (!spyQueued) { spyQueued = true; requestAnimationFrame(spyCategory); } }, { passive: true });
+const toast = document.getElementById('toast');
+let toastTimer;
+function showToast(text) {
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+document.getElementById('copy').onclick = async () => {
+  if (!sel.size) { showToast('Nessun piatto da copiare'); return; }
+  try {
+    await navigator.clipboard.writeText(out.value);
+    showToast('Lista copiata ✓ Incollala nella chat del gruppo');
+  } catch {
+    out.select();
+    showToast(document.execCommand('copy') ? 'Lista copiata ✓' : 'Seleziona il testo e copialo a mano');
+  }
+};
 document.getElementById('clear').onclick = () => {
-  if (mode !== 'edit') return;
+  if (mode !== 'edit' || !sel.size) return;
+  if (!confirm('Vuoi davvero azzerare tutto l\'ordine?')) return;
   sel.clear();
   arrived.clear();
   Object.values(cards).forEach(c => c.render());
@@ -564,10 +663,24 @@ document.getElementById('clear').onclick = () => {
 };
 document.getElementById('q').addEventListener('input', e => {
   const q = e.target.value.trim().toLowerCase();
-  Object.values(cards).forEach(c => c.el.style.display = c.text.includes(q) ? '' : 'none');
-  document.querySelectorAll('section').forEach(s => {
-    s.style.display = [...s.querySelectorAll('label.card')].some(l => l.style.display !== 'none') ? '' : 'none';
+  const isNumber = /^\d+$/.test(q);
+  Object.values(cards).forEach(c => {
+    const match = !q || (isNumber ? String(c.n).startsWith(q) : c.text.includes(q));
+    c.el.style.display = match ? '' : 'none';
   });
+  let visible = 0;
+  main.querySelectorAll('section').forEach(s => {
+    const shown = [...s.querySelectorAll('label.card')].some(l => l.style.display !== 'none');
+    s.style.display = shown ? '' : 'none';
+    catLinks.get(s.dataset.cat).hidden = !shown;
+    if (shown) visible++;
+  });
+  document.getElementById('searchEmpty').hidden = visible > 0;
+  spyCategory();
+});
+document.getElementById('q').addEventListener('keydown', e => {
+  if (e.key === 'Escape' && e.target.value) { e.target.value = ''; e.target.dispatchEvent(new Event('input')); }
+  if (e.key === 'Enter') e.target.blur();
 });
   const importDialog = document.getElementById('importDialog');
   const importError = document.getElementById('importError');
@@ -640,6 +753,7 @@ function positionMobileSummary() {
     document.querySelector('.order-summary').prepend(status);
   }
   resizeFooter();
+  update();
 }
 mobileLayout.addEventListener('change', positionMobileSummary);
 positionMobileSummary();
@@ -649,6 +763,7 @@ if (matchMedia('(max-width:600px)').matches) {
   document.getElementById('orderTools').open = false;
 }
 setMode(localStorage.getItem('marinaMode') === 'table' ? 'table' : 'edit');
+spyCategory();
 if (!userName) askName();
 </script>
 </body>
