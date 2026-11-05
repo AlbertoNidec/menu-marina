@@ -6,6 +6,7 @@
 <title>Unisci ordini · Menu Marina</title>
 <style>
   @font-face { font-family:Kalam; src:url("fonts/Kalam-Regular.ttf") format("truetype"); font-style:normal; font-weight:400; font-display:swap; }
+  @font-face { font-family:"Lilita One"; src:url("fonts/LilitaOne-Regular.ttf") format("truetype"); font-style:normal; font-weight:400; font-display:swap; }
   * { box-sizing:border-box; }
   body { margin:0; background:#faf6f0; color:#533b27; font-family:system-ui,Segoe UI,Arial,sans-serif; line-height:1.5; }
   header, main { max-width:860px; margin:auto; padding:20px; }
@@ -28,16 +29,16 @@
   .sheet-preview { overflow-x:auto; }
   .order-sheet { width:105mm; height:148mm; padding:7mm 5mm 4mm; margin:0 auto 20px; background:#fff; color:#000; font-family:Arial,sans-serif; display:flex; flex-direction:column; border:1px solid #ccc; }
   .sheet-heading { display:flex; justify-content:flex-end; align-items:center; gap:5mm; margin-bottom:1.5mm; }
-  .sheet-heading h3 { margin:0; font-size:14px; font-weight:900; white-space:nowrap; }
-  .sheet-table { font-size:12px; font-style:italic; max-width:32mm; overflow-wrap:anywhere; }
-  .sheet-rule { text-align:center; font-size:8px; font-weight:900; margin:0 0 1.5mm; line-height:1.2; }
+  .sheet-heading h3 { margin:0; font-family:"Lilita One",sans-serif; font-size:16px; font-weight:400; white-space:nowrap; }
+  .sheet-table { font-family:Kalam,"Segoe Print",cursive; font-size:15px; max-width:32mm; overflow-wrap:anywhere; line-height:1.2; }
+  .sheet-rule { text-align:center; font-family:"Lilita One",sans-serif; font-size:9px; font-weight:400; margin:0 0 1.5mm; line-height:1.2; }
   .sheet-grids { display:grid; grid-template-columns:1fr 1fr; gap:1.5mm; flex:1; min-height:0; }
   .sheet-grids table { width:100%; height:100%; border-collapse:collapse; table-layout:fixed; color:#000; }
   .sheet-grids th, .sheet-grids td { border:1px solid #000; text-align:center; padding:0 1px; }
-  .sheet-grids th { height:6mm; font-size:6px; font-weight:900; white-space:nowrap; }
+  .sheet-grids th { height:6mm; font-family:"Lilita One",sans-serif; font-size:7px; font-weight:400; white-space:nowrap; }
   .sheet-grids td { font-family:Kalam,"Segoe Print",cursive; font-size:15px; font-weight:400; line-height:1; }
   .sheet-grids tbody tr { height:6mm; }
-  .sheet-note { margin:2mm 0 0; text-align:center; font-size:8px; font-weight:900; line-height:1.2; }
+  .sheet-note { margin:2mm 0 0; text-align:center; font-family:"Lilita One",sans-serif; font-size:9px; font-weight:400; line-height:1.2; }
   .sheet-page { margin:1mm 0 0; text-align:right; font-size:7px; }
   #summary { font-weight:600; }
   [hidden] { display:none !important; }
@@ -209,12 +210,15 @@ document.getElementById('mergeForm').onsubmit = e => {
 printButton.onclick = async () => {
   if (printButton.disabled) return;
   try {
-    const fonts = await document.fonts.load('15px Kalam', '0123456789');
-    if (!fonts.length) throw new Error('Carattere non disponibile');
+    const fonts = await Promise.all([
+      document.fonts.load('15px Kalam', '0123456789'),
+      document.fonts.load('16px "Lilita One"', 'MARINA SUSHI')
+    ]);
+    if (fonts.some(loaded => !loaded.length)) throw new Error('Carattere non disponibile');
     window.print();
   } catch (error) {
     console.error('Caricamento del carattere di stampa non riuscito:', error);
-    notice.textContent = 'Impossibile caricare il carattere scritto a mano. Ricarica la pagina e riprova a stampare.';
+    notice.textContent = 'Impossibile caricare i caratteri del modulo. Ricarica la pagina e riprova a stampare.';
   }
 };
 document.getElementById('reset').onclick = () => {
