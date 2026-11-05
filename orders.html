@@ -29,7 +29,7 @@
   .sheet-preview { display:none; }
   #mergedList { min-height:90px; }
   #copyStatus:empty, #notice:empty { display:none; }
-  .order-sheet { width:105mm; height:148mm; padding:7mm 5mm 4mm; margin:0 auto 20px; background:#fff; color:#000; font-family:Arial,sans-serif; display:flex; flex-direction:column; border:1px solid #ccc; }
+  .order-sheet { width:105mm; height:148mm; padding:7mm 5mm 4mm; margin:0 auto 20px; background:#fff; color:#000; font-family:Arial,sans-serif; display:flex; flex-direction:column; border:1px solid #ccc; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
   .sheet-heading { display:flex; justify-content:flex-end; align-items:center; gap:5mm; margin-bottom:1.5mm; }
   .sheet-heading h3 { margin:0; font-family:"Lilita One",sans-serif; font-size:16px; font-weight:400; white-space:nowrap; }
   .sheet-table { font-family:Kalam,"Segoe Print",cursive; font-size:15px; max-width:32mm; overflow-wrap:anywhere; line-height:1.2; }
@@ -54,8 +54,12 @@
     main { padding:0; max-width:none; }
     #result { margin:0; }
     #resultTitle, #summary, .result-list { display:none; }
-    .sheet-preview { display:block; overflow:visible; }
-    .order-sheet { border:0; margin:0 auto; break-after:page; break-inside:avoid; }
+    .sheet-preview { display:block; overflow:visible; padding-top:4mm; }
+    .order-sheet { border:0; margin:0 auto; break-after:page; break-inside:avoid; position:relative; }
+    /* Dashed cut line on the exact sheet edge: drawn as an overlay so the layout does not move. */
+    .order-sheet::before { content:""; position:absolute; inset:0; border:0.35mm dashed #444; pointer-events:none; }
+    .order-sheet::after { content:"✂"; position:absolute; top:0; left:6mm; transform:translateY(-50%); padding:0 1mm; background:#fff; color:#444; font:4.5mm/1 "Segoe UI Symbol",Arial,sans-serif; }
+    .order-sheet + .order-sheet { margin-top:4mm; }
     .order-sheet:last-child { break-after:auto; }
   }
 </style>
