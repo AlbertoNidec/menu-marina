@@ -210,6 +210,18 @@
     .arrival-intro { margin:10px 0; }
     dialog { max-height:calc(100dvh - 16px); }
   }
+  .order-status { flex:0 1 160px; flex-direction:column; gap:2px; text-align:center; }
+  .order-status strong { display:block; font-size:14px; }
+  .order-status p:empty { display:none; }
+  .order-status[data-level="high"] svg { color:#c41f1f; }
+  .order-status[data-level="high"] .person-skin { fill:#e84545; }
+  .order-status[data-level="high"] #orderBody { fill:#e84545; }
+  #orderSkeleton { display:none; }
+  .order-status[data-level="skeleton"] #orderSkeleton { display:block; }
+  .order-status[data-level="skeleton"] #orderPerson { display:none; }
+  @media (max-width:600px) {
+    .order-status { flex:1 0 100%; }
+  }
 </style>
 </head>
 <body>
@@ -254,12 +266,21 @@
   <div class="order-summary">
   <div id="orderStatus" class="order-status" data-level="low" role="status" aria-live="polite" aria-atomic="true">
     <svg viewBox="0 0 80 96" fill="none" aria-hidden="true" focusable="false">
-      <circle cx="40" cy="15" r="11" fill="#f3cfab" stroke="currentColor" stroke-width="2"/>
+      <g id="orderPerson">
+      <circle class="person-skin" cx="40" cy="15" r="11" fill="#f3cfab" stroke="currentColor" stroke-width="2"/>
       <path d="M35 17 Q40 22 45 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       <circle cx="36" cy="12" r="1.5" fill="currentColor"/>
       <circle cx="44" cy="12" r="1.5" fill="currentColor"/>
       <path d="M28 34 L18 55 M52 34 L62 55 M33 72 L30 90 M47 72 L50 90" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
       <path id="orderBody" d="M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z" fill="#f4d7ae" stroke="currentColor" stroke-width="2"/>
+      </g>
+      <g id="orderSkeleton" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M29 17 C25 1 55 1 51 17 L48 24 H32 Z" fill="#111"/>
+        <circle cx="35" cy="13" r="3" fill="#fff" stroke="none"/>
+        <circle cx="45" cy="13" r="3" fill="#fff" stroke="none"/>
+        <path d="M38 20 L40 17 L42 20 M36 25 H44" stroke="#fff" stroke-width="1.5"/>
+        <path d="M40 27 V64 M29 32 H51 M40 38 Q23 30 28 41 Q32 46 40 44 Q48 46 52 41 Q57 30 40 38 M40 48 Q25 40 29 49 Q33 54 40 53 Q47 54 51 49 Q55 40 40 48 M29 33 L20 48 L17 62 M51 33 L60 48 L63 62 M31 60 L40 66 L49 60 L46 71 H34 Z M35 72 L30 89 M45 72 L50 89 M26 91 H33 M47 91 H54"/>
+      </g>
     </svg>
     <div>
       <strong><span class="count" id="count">0</span> <span id="countLabel">piatti ordinati</span></strong>
@@ -455,23 +476,19 @@ function update() {
   renderArrivals(list);
   out.value = (userName ? userName + ': ' : '') + list.map(([n, q]) => q > 1 ? n + 'x' + q : n).join(',');
   const total = list.reduce((s, [, q]) => s + q, 0);
-  const level = total > 16 ? 'high' : total >= 12 ? 'medium' : 'low';
+  const level = total > 16 ? 'high' : total >= 12 ? 'medium' : total >= 8 ? 'low' : 'skeleton';
   document.getElementById('count').textContent = total;
   document.getElementById('countLabel').textContent = total === 1 ? 'piatto ordinato' : 'piatti ordinati';
   document.getElementById('orderStatus').dataset.level = level;
-  document.getElementById('orderMessage').textContent = total === 0
-    ? 'Il menu ti aspetta!'
-    : level === 'high'
-      ? 'Probabilmente stai ordinando troppo. Anche le bacchette chiedono una pausa!'
-      : level === 'medium'
-        ? 'La tavola si riempie: buon appetito!'
-        : 'Un piatto alla volta, si comincia!';
+  document.getElementById('orderMessage').textContent = level === 'high'
+    ? 'Probabilmente stai ordinando troppo. Anche le bacchette chiedono una pausa!'
+    : '';
   const bodies = {
     low: 'M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z',
     medium: 'M27 30 Q40 26 53 30 Q61 50 56 72 Q40 79 24 72 Q19 50 27 30 Z',
     high: 'M25 30 Q40 25 55 30 C72 42 79 66 66 76 Q40 88 14 76 C1 66 8 42 25 30 Z'
   };
-  document.getElementById('orderBody').setAttribute('d', bodies[level]);
+  document.getElementById('orderBody').setAttribute('d', bodies[level] || bodies.low);
   localStorage.setItem('marinaSel', JSON.stringify(Object.fromEntries(sel)));
 }
 const footer = document.querySelector('footer');
