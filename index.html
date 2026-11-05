@@ -289,11 +289,144 @@
     #who::before { content:"👤 "; }
   }
   @media (prefers-reduced-motion:reduce) { .toast { transition:none; } }
+
+  /* ===== Theme "salmone, riso e alga" ===== */
+  @font-face { font-family:"Lilita One"; src:url("fonts/LilitaOne-Regular.ttf") format("truetype"); font-display:swap; }
+  :root {
+    --bg:#fff7ef; --card:#fff; --ink:#2b2320; --muted:#6e5d55; --line:#f1dfd2;
+    --primary:#d63e2f; --primary-dark:#b02f22; --primary-soft:#ffe8dd;
+    --nori:#1f3b30; --wasabi:#8bc34a; --gold:#ffb020;
+    --radius:18px; --shadow:0 2px 10px #8a3b1a14, 0 1px 2px #8a3b1a10; --shadow-lift:0 12px 28px #8a3b1a26;
+    --accent:var(--primary);
+  }
+  body {
+    background:
+      radial-gradient(circle at 12% 8%, #ffe1d1 0 120px, transparent 121px),
+      radial-gradient(circle at 92% 30%, #fde9c9 0 90px, transparent 91px),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  }
+  h1, h2, .arrival-card h3, .order-status strong, dialog h2, #nameForm h2 { font-family:"Lilita One","Segoe UI",system-ui,sans-serif; font-weight:400; letter-spacing:.2px; }
+  header { background:#fffffff0; backdrop-filter:saturate(1.4) blur(10px); -webkit-backdrop-filter:saturate(1.4) blur(10px); border-bottom:0; box-shadow:0 1px 0 var(--line), 0 6px 18px #8a3b1a0f; }
+  h1 { color:var(--primary); font-size:24px; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  h1 .logo { display:inline-block; font-size:26px; transform-origin:50% 80%; animation:wobble 4s ease-in-out infinite; }
+  #q { border:2px solid var(--line); border-radius:999px; padding-left:40px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b02f22' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px 50% / 18px; transition:border-color .15s, box-shadow .15s; }
+  #q:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 4px #d63e2f22; }
+  button { background:var(--primary); border-radius:12px; font-weight:600; transition:transform .12s, background .15s, box-shadow .15s; }
+  button:hover:not(:disabled) { background:var(--primary-dark); }
+  button:active:not(:disabled) { transform:scale(.94); }
+  button.sec { background:#fff; color:var(--primary-dark); border:2px solid var(--line); }
+  button.sec:hover:not(:disabled) { background:var(--primary-soft); }
+  button:disabled { background:#f3ece7; color:#8f7e76; }
+  .mode-switch { background:#f6ebe2; padding:3px; border-radius:999px; gap:2px; }
+  .mode-switch button { border:0; border-radius:999px; background:transparent; color:var(--primary-dark); padding:8px 16px; min-height:40px; }
+  .mode-switch button:hover:not(:disabled) { background:#fff8; }
+  .mode-switch button[aria-pressed="true"] { background:var(--primary); color:#fff; box-shadow:0 2px 8px #d63e2f55; }
+  #who { background:#fff; color:var(--nori); border:2px solid var(--line); border-radius:999px; }
+  #who::before { content:"👤 "; }
+  .group-orders { color:var(--nori); font-weight:600; text-decoration:none; border-bottom:2px dotted #1f3b3066; }
+  .cat-nav a { border:2px solid var(--line); color:var(--nori); font-weight:600; transition:background .15s, transform .12s; }
+  .cat-nav a:hover { background:var(--primary-soft); }
+  .cat-nav a:active { transform:scale(.95); }
+  .cat-nav a.active { background:var(--nori); border-color:var(--nori); color:#fff; }
+  .cat-nav a b { background:var(--primary); }
+  .cat-nav a.active b { color:var(--nori); }
+  main h2, #tableView h2 { color:var(--nori); border:0; font-size:28px; display:flex; align-items:center; gap:10px; }
+  main h2::after { content:""; flex:1; height:3px; border-radius:3px; background:repeating-linear-gradient(90deg, var(--primary) 0 14px, transparent 14px 22px); opacity:.35; }
+  main h2 .cat-emoji { font-size:26px; }
+  .grid { gap:16px; }
+  label.card { border-radius:var(--radius); border:2px solid transparent; box-shadow:var(--shadow); transition:transform .18s cubic-bezier(.3,1.5,.6,1), box-shadow .18s, border-color .15s, background .15s; }
+  @media (hover:hover) { label.card:hover { transform:translateY(-4px) rotate(-.4deg); box-shadow:var(--shadow-lift); } }
+  label.card img { transition:filter .2s; }
+  label.card:hover img { filter:saturate(1.15); }
+  label.card.sel { border-color:var(--primary); background:linear-gradient(180deg,#fff 0,#fff3ec 100%); box-shadow:0 0 0 4px #d63e2f1f, var(--shadow); }
+  label.card.pop { animation:pop .35s cubic-bezier(.3,1.6,.5,1); }
+  .num { background:var(--nori); border-radius:8px; font-family:"Lilita One",system-ui,sans-serif; font-weight:400; letter-spacing:.5px; }
+  .name { font-weight:700; }
+  .price { display:block; width:fit-content; margin-top:6px; padding:1px 8px; border-radius:999px; background:#f7eee7; color:var(--muted); font-weight:600; font-size:12px; }
+  .ing { color:var(--muted); font-style:italic; }
+  .star { color:var(--gold); text-shadow:0 1px 0 #b06d00; }
+  label.card input[type=checkbox] {
+    appearance:none; -webkit-appearance:none; margin:0; width:38px; height:38px; border-radius:50%; border:0; cursor:pointer;
+    background:#fffffff2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' stroke='%23d63e2f' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 6v12M6 12h12'/%3E%3C/svg%3E") no-repeat center / 20px;
+    box-shadow:0 3px 10px #0003; transition:transform .2s cubic-bezier(.3,1.6,.5,1), background-color .15s;
+  }
+  label.card:hover input[type=checkbox] { transform:scale(1.08) rotate(90deg); }
+  label.card input[type=checkbox]:checked {
+    background:var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") no-repeat center / 20px;
+    transform:none;
+  }
+  label.card input[type=checkbox]:focus-visible { outline:3px solid var(--nori); outline-offset:2px; }
+  .qty { background:#fff; border:2px solid var(--line); border-radius:999px; padding:3px; justify-content:space-between; }
+  .qty button { border-radius:50%; }
+  .qty b { font-family:"Lilita One",system-ui,sans-serif; font-weight:400; font-size:18px; color:var(--primary-dark); }
+  footer { background:#fffffff5; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-top:0; border-radius:22px 22px 0 0; box-shadow:0 -6px 24px #8a3b1a1f; }
+  .order-status { color:var(--nori); }
+  .order-status strong { font-size:17px; }
+  .order-status .count { display:inline-block; color:var(--primary); }
+  .order-status .count.bump { animation:bump .4s cubic-bezier(.3,1.8,.5,1); }
+  .order-status svg { transition:transform .3s; }
+  .order-status.bump svg { animation:wiggle .5s ease; }
+  .order-status p { font-weight:600; color:var(--muted); }
+  .order-status[data-level="high"] p { color:#b3261e; }
+  .order-tray summary, .order-tools summary { color:var(--nori); }
+  .order-item img { border-radius:12px; }
+  .order-controls button { background:var(--nori); border-radius:50%; }
+  .order-controls button:hover:not(:disabled) { background:#2e5545; }
+  .order-controls output { font-family:"Lilita One",system-ui,sans-serif; font-weight:400; color:var(--primary-dark); }
+  .order-empty { color:var(--muted); }
+  #out { border:2px solid var(--line); border-radius:12px; }
+  .search-empty, #arrivalEmpty { font-size:16px; line-height:1.5; }
+  .big-emoji { display:block; font-size:52px; margin-bottom:8px; animation:float 3s ease-in-out infinite; }
+  .arrival-card { border:2px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); transition:background .3s, border-color .3s, transform .2s; }
+  .arrival-card button { background:var(--primary); border-radius:12px; }
+  .arrival-card .undo { background:#fff; color:var(--primary-dark); border:2px solid var(--line); }
+  .arrival-card.complete { border-color:var(--wasabi); background:linear-gradient(180deg,#f6fbef,#eaf5dc); }
+  .arrival-card.just-done { animation:pop .45s cubic-bezier(.3,1.6,.5,1); }
+  #arrivalProgress { color:var(--nori); }
+  dialog { border:0; border-radius:22px; box-shadow:0 20px 50px #0004; }
+  dialog::backdrop, #nameDlg { background:#2b232099; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+  #nameDlg { position:fixed; inset:0; z-index:20; align-items:center; justify-content:center; padding:16px; }
+  #nameForm { background:#fff; padding:28px 24px 24px; border-radius:24px; display:flex; flex-direction:column; gap:12px; width:min(92vw,360px); text-align:center; box-shadow:0 20px 50px #0004; animation:pop .4s cubic-bezier(.3,1.6,.5,1); }
+  #nameForm h2 { margin:0; border:0; color:var(--nori); font-size:26px; display:block; }
+  #nameForm h2::after { content:none; }
+  .name-hero { font-size:44px; letter-spacing:6px; animation:float 3s ease-in-out infinite; }
+  .name-sub { margin:-4px 0 4px; color:var(--muted); font-size:14px; }
+  #nameIn { padding:12px 16px; font-size:17px; border:2px solid var(--line); border-radius:999px; text-align:center; }
+  #nameIn:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 4px #d63e2f22; }
+  #nameForm button { min-height:48px; font-size:17px; border-radius:999px; }
+  .toast { top:calc(var(--header-h,60px) + 10px); background:var(--nori); border-radius:999px; padding:10px 18px; font-weight:600; }
+  /* Flying dish and confetti */
+  .fly { position:fixed; z-index:40; left:0; top:0; font-size:30px; pointer-events:none; will-change:transform; filter:drop-shadow(0 4px 6px #0003); }
+  .confetti { position:fixed; z-index:40; top:-20px; width:10px; height:14px; border-radius:2px; pointer-events:none; }
+  @keyframes pop { 0% { transform:scale(1); } 40% { transform:scale(1.05); } 100% { transform:scale(1); } }
+  @keyframes bump { 0% { transform:scale(1); } 40% { transform:scale(1.6); } 100% { transform:scale(1); } }
+  @keyframes wiggle { 0%,100% { transform:rotate(0); } 25% { transform:rotate(-12deg); } 75% { transform:rotate(12deg); } }
+  @keyframes wobble { 0%,80%,100% { transform:rotate(0); } 85% { transform:rotate(-14deg); } 90% { transform:rotate(10deg); } 95% { transform:rotate(-6deg); } }
+  @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+  @media (max-width:600px) {
+    .mode-switch button { padding:6px 10px; min-height:36px; font-size:13px; }
+    main h2, #tableView h2 { font-size:24px; }
+    .grid { gap:12px; }
+    label.card input[type=checkbox] { width:36px; height:36px; }
+    .qty { padding:2px; }
+    .qty button { width:40px; min-width:40px; height:40px; min-height:40px; }
+    header > #who { border:0; background:transparent; color:var(--nori); font-weight:600; }
+    .order-tray summary, .order-tools summary { border:2px solid var(--line); border-radius:14px; background:#fff; font-size:13px; font-weight:700; }
+    details[open].order-tray summary, details[open].order-tools summary { background:var(--nori); border-color:var(--nori); color:#fff; }
+    .order-items, .order-empty, .tool-actions { border-top:0; border-radius:20px 20px 0 0; box-shadow:0 -8px 20px #8a3b1a1f; }
+    .price { font-size:11px; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { animation:none !important; transition:none !important; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <h1>Menu Marina</h1>
+  <h1><span class="logo" aria-hidden="true">🍣</span> Menu Marina</h1>
   <input id="q" type="search" placeholder="Cerca numero, nome o ingrediente…" aria-label="Cerca nel menu" enterkeyhint="search" autocomplete="off">
   <nav class="mode-switch" aria-label="Modalità del menu">
     <button id="editMode" type="button" aria-pressed="true">Ordina</button>
@@ -309,18 +442,20 @@
   <nav id="catNav" class="cat-nav" aria-label="Categorie del menu"></nav>
 </header>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<div id="nameDlg" style="display:none;position:fixed;inset:0;background:#000a;z-index:20;align-items:center;justify-content:center">
-  <form id="nameForm" style="background:#fff;padding:24px;border-radius:12px;display:flex;flex-direction:column;gap:12px;width:min(90vw,340px)">
-    <h2 style="margin:0;border:0">Come ti chiami?</h2>
-    <input id="nameIn" required maxlength="40" placeholder="Nome" style="padding:10px;font-size:16px;border:1px solid #ccc;border-radius:8px">
-    <button type="submit">Entra</button>
+<div id="nameDlg" style="display:none">
+  <form id="nameForm" aria-labelledby="nameTitle">
+    <div class="name-hero" aria-hidden="true">🍣🥢🍜</div>
+    <h2 id="nameTitle">Ciao! Come ti chiami?</h2>
+    <p class="name-sub">Così il gruppo sa chi ha ordinato cosa.</p>
+    <input id="nameIn" required maxlength="40" placeholder="Il tuo nome" autocomplete="given-name" aria-labelledby="nameTitle">
+    <button type="submit">Si mangia! 🥢</button>
   </form>
 </div>
-<main id="main"><p id="searchEmpty" class="search-empty" hidden>Nessun piatto trovato. Prova con un altro numero o nome.</p></main>
+<main id="main"><p id="searchEmpty" class="search-empty" hidden><span class="big-emoji" aria-hidden="true">🤔</span>Nessun piatto trovato.<br>Prova con un altro numero, nome o ingrediente.</p></main>
 <main id="tableView" hidden>
   <h2>Il tuo ordine al tavolo</h2>
   <p class="arrival-intro">Qui l'ordine non si modifica. Segna ogni porzione quando arriva; se sbagli, puoi annullare l'ultimo arrivo.</p>
-  <p id="arrivalEmpty" class="arrival-intro" hidden>Nessun piatto ordinato. Torna a «Ordina» oppure importa una lista.</p>
+  <p id="arrivalEmpty" class="arrival-intro" hidden><span class="big-emoji" aria-hidden="true">🍽️</span>Il tavolo è ancora vuoto. Torna a «Ordina» oppure importa una lista.</p>
   <div id="arrivalItems" class="grid"></div>
 </main>
 <dialog id="importDialog" aria-labelledby="importTitle">
@@ -364,7 +499,7 @@
   </div>
       <details id="trayDetails" class="order-tray" open>
         <summary>Foto e quantità</summary>
-        <p id="orderEmpty" class="order-empty">Seleziona un piatto: lo ritroverai qui con foto e quantità.</p>
+        <p id="orderEmpty" class="order-empty">Il vassoio è vuoto 🥢 Tocca un piatto per aggiungerlo qui.</p>
         <ul id="orderItems" class="order-items" aria-label="Riepilogo dei piatti ordinati" hidden></ul>
       </details>
   </div>
@@ -390,6 +525,54 @@ const main = document.getElementById('main'), out = document.getElementById('out
 const cats = [...new Set(ITEMS.map(i => i.cat))];
 const cards = {};
 
+const CAT_EMOJI = {
+  'Antipasti':'🥟', 'Zuppe':'🍲', 'Cucina Thailandese':'🍛', 'Insalata':'🥗', 'Pasta':'🍝', 'Riso':'🍚',
+  'Noodles':'🍜', 'Zuppa Ramen':'🍜', 'Gamberi e Calamari':'🦐', 'Fritto':'🍤', 'Secondi di Carne':'🥩',
+  'Griglia':'🔥', 'Piatti Speciali':'⭐', 'Contorno':'🥢', 'Carpaccio':'🐟', 'Tartare':'🐟', 'Sashimi':'🐟',
+  'Sushi':'🍣', 'Nigiri':'🍣', 'Gunkan':'🍙', 'Hosomaki':'🍣', 'Uramaki':'🍣', 'Futomaki':'🍥',
+  'Futomaki Fritto':'🍥', 'Temaki':'🌯', 'Cirashi':'🍱', 'Onigiri':'🍙'
+};
+const emojiOf = c => CAT_EMOJI[c] || '🍣';
+const reduceMotion = matchMedia('(prefers-reduced-motion:reduce)');
+function flyToOrder(fromEl, emoji) {
+  if (reduceMotion.matches || !fromEl.animate) return;
+  const target = document.getElementById('orderStatus').getBoundingClientRect();
+  const from = fromEl.getBoundingClientRect();
+  const f = document.createElement('span');
+  f.className = 'fly';
+  f.textContent = emoji;
+  document.body.appendChild(f);
+  const x0 = from.left + from.width / 2 - 15, y0 = from.top + from.height / 2 - 15;
+  const x1 = target.left + target.width / 2 - 15, y1 = target.top + target.height / 2 - 15;
+  const midY = Math.min(y0, y1) - 80;
+  f.animate([
+    { transform:`translate(${x0}px,${y0}px) scale(1.4) rotate(0deg)`, opacity:1 },
+    { transform:`translate(${(x0 + x1) / 2}px,${midY}px) scale(1.1) rotate(180deg)`, opacity:1, offset:.5 },
+    { transform:`translate(${x1}px,${y1}px) scale(.4) rotate(360deg)`, opacity:.3 }
+  ], { duration:650, easing:'cubic-bezier(.5,0,.6,1)' }).onfinish = () => f.remove();
+}
+function confetti() {
+  if (reduceMotion.matches || !document.body.animate) return;
+  const colors = ['#d63e2f', '#ffb020', '#8bc34a', '#1f3b30', '#ff8fab', '#4fc3f7'];
+  for (let i = 0; i < 70; i++) {
+    const c = document.createElement('span');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[i % colors.length];
+    document.body.appendChild(c);
+    const drift = (Math.random() - .5) * 200, spin = (Math.random() - .5) * 1440;
+    c.animate([
+      { transform:'translate(0,0) rotate(0)' },
+      { transform:`translate(${drift}px,${innerHeight + 40}px) rotate(${spin}deg)` }
+    ], { duration:1800 + Math.random() * 1400, delay:Math.random() * 300, easing:'cubic-bezier(.25,.6,.5,1)' }).onfinish = () => c.remove();
+  }
+}
+const ADD_CHEERS = ['Ottima scelta! 😋', 'Gnam! 🥢', 'Questo è un classico 👌', 'Lo chef approva 👨‍🍳', 'Ottimo gusto! ✨', 'Buonissimo! 🤤'];
+const LEVEL_MESSAGES = {
+  skeleton: ['Così resti a pancia vuota 💀', 'Le ossa chiedono cibo… 🦴', 'Solo l\'antipasto? 👀'],
+  low: ['Si comincia a ragionare 😋', 'Buon inizio! 🥢', 'Lo stomaco ringrazia 🙏'],
+  medium: ['Ora sì che si mangia! 🍣', 'Serata da campioni 🏆', 'Che banchetto! 🎉'],
+};
 const catNav = document.getElementById('catNav');
 const catLinks = new Map();
 // While a tapped category is scrolling into view, keep it highlighted.
@@ -397,7 +580,7 @@ let pinnedCat = null, unpinTimer;
 cats.forEach((c, i) => {
   const a = document.createElement('a');
   a.href = '#cat-' + i;
-  a.innerHTML = `<span>${c}</span><b hidden></b>`;
+  a.innerHTML = `<span aria-hidden="true">${emojiOf(c)}</span><span>${c}</span><b hidden></b>`;
   a.onclick = e => {
     e.preventDefault();
     pinnedCat = c;
@@ -418,7 +601,7 @@ for (const c of cats) {
   const sec = document.createElement('section');
   sec.id = 'cat-' + cats.indexOf(c);
   sec.dataset.cat = c;
-  sec.innerHTML = `<h2>${c}</h2><div class="grid"></div>`;
+  sec.innerHTML = `<h2><span class="cat-emoji" aria-hidden="true">${emojiOf(c)}</span>${c}</h2><div class="grid"></div>`;
   const grid = sec.querySelector('.grid');
   for (const it of ITEMS.filter(i => i.cat === c)) {
     const l = document.createElement('label');
@@ -440,8 +623,14 @@ for (const c of cats) {
     const setQty = q => {
       if (mode !== 'edit') return;
       q = it.star ? Math.min(q, 1) : Math.min(q, 99);
+      const before = sel.get(it.n) || 0;
       q > 0 ? sel.set(it.n, q) : sel.delete(it.n);
       render(); update();
+      if (q > before) {
+        l.classList.remove('pop'); void l.offsetWidth; l.classList.add('pop');
+        flyToOrder(l.querySelector('img'), emojiOf(c));
+        if (before === 0 && Math.random() < .35) showToast(ADD_CHEERS[Math.floor(Math.random() * ADD_CHEERS.length)]);
+      }
     };
     cb.addEventListener('change', () => setQty(cb.checked ? 1 : 0));
     l.querySelector('.plus').onclick = e => { e.preventDefault(); setQty((sel.get(it.n) || 0) + 1); };
@@ -551,8 +740,15 @@ arrivalItems.addEventListener('click', e => {
   if (!button || mode !== 'table') return;
   const n = Number(button.closest('[data-arrival-dish]').dataset.arrivalDish);
   const done = arrived.get(n) || 0;
-  arrived.set(n, button.dataset.arrivalAction === 'arrive' ? Math.min(sel.get(n), done + 1) : Math.max(0, done - 1));
+  const arriving = button.dataset.arrivalAction === 'arrive';
+  arrived.set(n, arriving ? Math.min(sel.get(n), done + 1) : Math.max(0, done - 1));
   renderArrivals([...sel].sort((a, b) => a[0] - b[0]));
+  if (!arriving) return;
+  const card = button.closest('.arrival-card');
+  if (arrived.get(n) === sel.get(n)) { card.classList.remove('just-done'); void card.offsetWidth; card.classList.add('just-done'); }
+  const allDone = [...sel].every(([k, q]) => arrived.get(k) === q);
+  if (allDone) { confetti(); showToast('Tutto arrivato! Buon appetito 🎉'); }
+  else flyToOrder(button, '🥢');
 });
 function setMode(next) {
   mode = next;
@@ -578,7 +774,16 @@ function update() {
   out.value = (userName ? userName + ': ' : '') + list.map(([n, q]) => q > 1 ? n + 'x' + q : n).join(',');
   const total = list.reduce((s, [, q]) => s + q, 0);
   const level = total > 16 ? 'high' : total >= 12 ? 'medium' : total >= 8 ? 'low' : 'skeleton';
-  document.getElementById('count').textContent = total;
+  const countEl = document.getElementById('count'), statusEl = document.getElementById('orderStatus');
+  if (countEl.textContent !== String(total) && update.ready && !reduceMotion.matches) {
+    for (const el of [countEl, statusEl]) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  }
+  update.ready = true;
+  if (statusEl.dataset.level !== (total > 16 ? 'high' : total >= 12 ? 'medium' : total >= 8 ? 'low' : 'skeleton') || !update.msg) {
+    const options = LEVEL_MESSAGES[total > 16 ? 'high' : total >= 12 ? 'medium' : total >= 8 ? 'low' : 'skeleton'];
+    update.msg = options ? options[Math.floor(Math.random() * options.length)] : '';
+  }
+  countEl.textContent = total;
   document.getElementById('countLabel').textContent = matchMedia('(max-width:600px)').matches
     ? (total === 1 ? 'piatto' : 'piatti')
     : (total === 1 ? 'piatto ordinato' : 'piatti ordinati');
@@ -593,7 +798,7 @@ function update() {
   document.getElementById('orderStatus').dataset.level = level;
   document.getElementById('orderMessage').textContent = level === 'high'
     ? 'Probabilmente stai ordinando troppo. Anche le bacchette chiedono una pausa!'
-    : '';
+    : total === 0 ? 'Il menu ti aspetta! 🍣' : update.msg;
   const bodies = {
     low: 'M31 30 Q40 26 49 30 L50 72 Q40 76 30 72 Z',
     medium: 'M27 30 Q40 26 53 30 Q61 50 56 72 Q40 79 24 72 Q19 50 27 30 Z',
@@ -618,6 +823,7 @@ for (const id of ['trayDetails', 'orderTools']) {
 const header = document.querySelector('header');
 const resizeHeader = () => {
   document.documentElement.style.scrollPaddingTop = (header.offsetHeight + 8) + 'px';
+  document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
 };
 new ResizeObserver(resizeHeader).observe(header);
 let spyQueued = false;
