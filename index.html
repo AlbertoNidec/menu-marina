@@ -61,6 +61,8 @@
   .mode-switch { display:flex; gap:6px; }
   .mode-switch button { background:#fff; color:#754315; border:1px solid #bca38a; min-height:44px; }
   .mode-switch button[aria-pressed="true"] { background:#9b4b10; color:#fff; border-color:#9b4b10; }
+  .group-orders { color:#754315; padding:8px 0; }
+  @media (max-width:600px) { .group-orders { order:4; font-size:14px; } }
   .order-tray summary, .order-tools summary { cursor:pointer; padding:8px 0; font-weight:600; color:#754315; }
   .order-tools { flex:1 0 100%; min-width:0; }
   .tool-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding-top:6px; }
@@ -219,6 +221,7 @@
     <button id="editMode" type="button" aria-pressed="true">Ordina</button>
     <button id="tableMode" type="button" aria-pressed="false">Al tavolo</button>
   </nav>
+  <a class="group-orders" href="orders.html">Unisci ordini del gruppo</a>
 </header>
 <div id="nameDlg" style="display:none;position:fixed;inset:0;background:#000a;z-index:20;align-items:center;justify-content:center">
   <form id="nameForm" style="background:#fff;padding:24px;border-radius:12px;display:flex;flex-direction:column;gap:12px;width:min(90vw,340px)">

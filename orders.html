@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unisci ordini · Menu Marina</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; background:#faf6f0; color:#533b27; font-family:system-ui,Segoe UI,Arial,sans-serif; line-height:1.5; }
+  header, main { max-width:860px; margin:auto; padding:20px; }
+  header { border-bottom:1px solid #d9c8b7; }
+  a { color:#85400d; }
+  h1 { margin:12px 0 0; font-size:30px; line-height:1.2; }
+  h2 { margin:0 0 12px; font-size:24px; }
+  p { margin:8px 0 16px; }
+  label { display:block; font-weight:600; margin-bottom:8px; }
+  textarea { display:block; width:100%; min-height:220px; resize:vertical; border:1px solid #ad8c6c; border-radius:8px; padding:12px; font:16px/1.6 monospace; background:#fff; color:#2b2b2b; }
+  .actions { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+  button { min-height:44px; padding:10px 18px; border:1px solid #9b4b10; border-radius:8px; background:#9b4b10; color:#fff; cursor:pointer; font:600 16px system-ui,Segoe UI,Arial,sans-serif; }
+  button.secondary { background:#fff; color:#754315; }
+  button:disabled { background:#eee; border-color:#ccc; color:#666; cursor:not-allowed; }
+  button:focus-visible, a:focus-visible, textarea:focus-visible { outline:3px solid #754315; outline-offset:3px; }
+  #errors { padding:12px; border:1px solid #a12515; color:#921f13; background:#fff; overflow-wrap:anywhere; }
+  #errors p { margin:4px 0; }
+  #result { margin-top:28px; }
+  table { width:100%; border-collapse:collapse; background:#fff; color:#222; font-size:18px; }
+  th, td { padding:10px 16px; text-align:center; border:1px solid #b8a18b; }
+  th { background:#f0e2d2; }
+  tfoot { font-weight:700; }
+  #summary { font-weight:600; }
+  [hidden] { display:none !important; }
+  @media (max-width:600px) {
+    header, main { padding:16px; }
+    h1 { font-size:26px; }
+    .actions button { flex:1 1 130px; }
+    th, td { padding:8px; }
+  }
+  @page { size:A4; margin:15mm; }
+  @media print {
+    body { background:#fff; color:#000; }
+    header, #editor { display:none; }
+    main { padding:0; max-width:none; }
+    #result { margin:0; }
+    h2 { font-size:20pt; }
+    table { font-size:14pt; }
+    th, td { border-color:#555; padding:5mm; }
+    th { background:#fff; }
+    thead { display:table-header-group; }
+    tfoot { display:table-row-group; }
+    tr { break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">← Torna al menu</a>
+  <h1>Unisci gli ordini del gruppo</h1>
+</header>
+<main>
+  <section id="editor" aria-label="Inserimento delle liste">
+    <p>Incolla una lista per persona, su righe separate. I nomi sono facoltativi; le quantità dello stesso piatto vengono sommate.</p>
+    <form id="mergeForm">
+      <label for="lists">Liste dei partecipanti</label>
+      <textarea id="lists" required spellcheck="false" aria-describedby="formatHelp" placeholder="Mario: 2x3,5,101x2&#10;Anna: 2,5x2,60"></textarea>
+      <p id="formatHelp">Formato: <strong>Nome: 2x3,5,101x2</strong>. Un numero senza quantità vale una porzione. Accetta anche × al posto di x. Tutto viene elaborato nel browser, senza invii a un server.</p>
+      <div class="actions">
+        <button type="submit">Unisci liste</button>
+        <button id="print" type="button" disabled>Stampa / Salva PDF</button>
+        <button id="reset" type="button" class="secondary">Azzera</button>
+      </div>
+    </form>
+    <div id="errors" role="alert" hidden></div>
+    <p id="notice" role="status">La tabella stampabile apparirà qui sotto.</p>
+  </section>
+  <section id="result" aria-labelledby="resultTitle" hidden>
+    <h2 id="resultTitle">Menu Marina · Ordine del gruppo</h2>
+    <p id="summary"></p>
+    <table aria-label="Quantità totali per numero di piatto">
+      <thead><tr><th scope="col">Numero piatto</th><th scope="col">Quantità totale</th></tr></thead>
+      <tbody id="rows"></tbody>
+      <tfoot><tr><th scope="row">Totale porzioni</th><td id="total"></td></tr></tfoot>
+    </table>
+  </section>
+</main>
+<script src="items.js"></script>
+<script>
+const lists = document.getElementById('lists');
+const result = document.getElementById('result');
+const printButton = document.getElementById('print');
+const errors = document.getElementById('errors');
+const notice = document.getElementById('notice');
+
+function mergeOrders(text) {
+  const totals = new Map();
+  const problems = [];
+  let people = 0;
+  for (const [index, raw] of text.split(/\r?\n/).entries()) {
+    const line = raw.trim();
+    if (!line) continue;
+    people++;
+    const colon = line.indexOf(':');
+    const numbers = colon >= 0 ? line.slice(colon + 1) : line;
+    const person = new Map();
+    for (const token of numbers.split(/[,;]/)) {
+      const match = token.trim().match(/^(\d+)(?:\s*[x×]\s*(\d+))?$/i);
+      if (!match) {
+        problems.push(`Riga ${index + 1}: voce non valida «${token.trim() || '(vuota)'}». Usa ad esempio 2x3,5.`);
+        continue;
+      }
+      const n = Number(match[1]), q = Number(match[2] || 1);
+      if (!ITEMS.some(item => item.n === n)) {
+        problems.push(`Riga ${index + 1}: il piatto ${n} non esiste nel menu.`);
+        continue;
+      }
+      const quantity = (person.get(n) || 0) + q;
+      if (!Number.isSafeInteger(q) || q < 1 || quantity > 99) {
+        problems.push(`Riga ${index + 1}: la quantità del piatto ${n} deve essere tra 1 e 99.`);
+        continue;
+      }
+      person.set(n, quantity);
+    }
+    for (const [n, q] of person) totals.set(n, (totals.get(n) || 0) + q);
+  }
+  if (!people) problems.push('Incolla almeno una lista di piatti.');
+  return { people, totals:[...totals].sort((a, b) => a[0] - b[0]), problems };
+}
+
+function invalidate(message) {
+  result.hidden = true;
+  printButton.disabled = true;
+  notice.textContent = message;
+  errors.hidden = true;
+  errors.replaceChildren();
+}
+lists.addEventListener('input', () => invalidate('Lista modificata: premi «Unisci liste» per aggiornare la stampa.'));
+document.getElementById('mergeForm').onsubmit = e => {
+  e.preventDefault();
+  invalidate('');
+  const merged = mergeOrders(lists.value);
+  if (merged.problems.length) {
+    for (const problem of merged.problems) {
+      const p = document.createElement('p');
+      p.textContent = problem;
+      errors.append(p);
+    }
+    errors.hidden = false;
+    notice.textContent = 'Correggi le righe indicate: nessuna lista parziale è stata generata.';
+    return;
+  }
+  const rows = document.getElementById('rows');
+  rows.replaceChildren();
+  let total = 0;
+  for (const [n, q] of merged.totals) {
+    const row = document.createElement('tr');
+    const number = document.createElement('th');
+    number.scope = 'row';
+    number.textContent = n;
+    const quantity = document.createElement('td');
+    quantity.textContent = q;
+    row.append(number, quantity);
+    rows.append(row);
+    total += q;
+  }
+  document.getElementById('summary').textContent = `${merged.people} liste · ${merged.totals.length} piatti diversi · ${total} porzioni totali`;
+  document.getElementById('total').textContent = total;
+  result.hidden = false;
+  printButton.disabled = false;
+  notice.textContent = 'Tabella pronta. Premi «Stampa / Salva PDF» per stampare o scegliere il salvataggio in PDF.';
+};
+printButton.onclick = () => { if (!printButton.disabled) window.print(); };
+document.getElementById('reset').onclick = () => {
+  lists.value = '';
+  invalidate('La tabella stampabile apparirà qui sotto.');
+  lists.focus();
+};
+</script>
+</body>
+</html>
