@@ -123,6 +123,29 @@
   @media (max-width:350px) {
     .grid { grid-template-columns:minmax(0,1fr); }
   }
+  footer { padding-top:6px; gap:4px; }
+  .order-summary { gap:10px; }
+  .order-status { flex:0 1 220px; gap:6px; }
+  .order-status svg { width:32px; height:42px; }
+  .order-status strong { font-size:16px; }
+  .order-status p { font-size:12px; line-height:1.35; }
+  .order-status small { display:none; }
+  .order-tray summary, .order-tools summary { padding:5px 0; font-size:13px; }
+  .order-items { gap:8px; padding:2px 0 4px; }
+  .order-item { flex-basis:104px; }
+  .order-item img { width:104px; height:54px; }
+  .order-item-name { margin:3px 0; font-size:12px; }
+  .order-controls { gap:4px; }
+  .order-controls button { width:28px; min-width:28px; height:28px; min-height:28px; font-size:16px; }
+  .order-controls output { font-size:13px; }
+  @media (max-width:600px) {
+    .order-status { flex:1 0 100%; }
+    .order-tray summary, .order-tools summary { min-height:36px; padding:7px 0; }
+  }
+  @media (pointer:coarse) {
+    .order-controls button { width:32px; min-width:32px; height:32px; min-height:32px; }
+    .order-controls { gap:6px; }
+  }
 </style>
 </head>
 <body>
@@ -186,7 +209,7 @@
       </details>
   </div>
   <p id="arrivalProgress" role="status" aria-live="polite" hidden></p>
-  <details id="orderTools" class="order-tools" open>
+  <details id="orderTools" class="order-tools">
     <summary>Lista da copiare / importare</summary>
     <div class="tool-actions">
   <textarea id="out" readonly placeholder="Numeri selezionati (CSV)"></textarea>
