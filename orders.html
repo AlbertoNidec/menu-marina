@@ -34,12 +34,10 @@
   .sheet-heading h3 { margin:0; font-family:"Lilita One",sans-serif; font-size:16px; font-weight:400; white-space:nowrap; }
   .sheet-table { font-family:Kalam,"Segoe Print",cursive; font-size:15px; max-width:32mm; overflow-wrap:anywhere; line-height:1.2; }
   .sheet-rule { text-align:center; font-family:"Lilita One",sans-serif; font-size:9px; font-weight:400; margin:0 0 1.5mm; line-height:1.2; }
-  .sheet-grids { display:grid; grid-template-columns:1fr 1fr; gap:1.5mm; flex:1; min-height:0; }
-  .sheet-grids table { width:100%; height:100%; border-collapse:collapse; table-layout:fixed; color:#000; }
-  .sheet-grids th, .sheet-grids td { border:1px solid #000; text-align:center; padding:0 1px; }
-  .sheet-grids th { height:6mm; font-family:"Lilita One",sans-serif; font-size:7px; font-weight:400; white-space:nowrap; }
-  .sheet-grids td { font-family:Kalam,"Segoe Print",cursive; font-size:15px; font-weight:400; line-height:1; }
-  .sheet-grids tbody tr { height:6mm; }
+  .sheet-grids { height:118mm; flex:none; }
+  .sheet-grid { display:block; width:100%; height:100%; }
+  .grid-heading { font-family:"Lilita One",sans-serif; font-size:1.9px; }
+  .grid-number { font-family:Kalam,"Segoe Print",cursive; font-size:4px; }
   .sheet-note { margin:2mm 0 0; text-align:center; font-family:"Lilita One",sans-serif; font-size:9px; font-weight:400; line-height:1.2; }
   .sheet-page { margin:1mm 0 0; text-align:right; font-size:7px; }
   #summary { font-weight:600; }
@@ -169,22 +167,51 @@ function renderSheets(totals) {
       <div class="sheet-grids"></div>
       <p class="sheet-note">Esclusi dal menù: dolci, bevande, caffè</p>`;
     sheet.querySelector('.sheet-table').textContent = 'N. TA ' + (document.getElementById('tableNumber').value.trim() || '______');
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const grid = document.createElementNS(svgNS, 'svg');
+    grid.setAttribute('viewBox', '0 0 95 118');
+    grid.setAttribute('preserveAspectRatio', 'none');
+    grid.setAttribute('class', 'sheet-grid');
+    grid.setAttribute('role', 'img');
+    grid.setAttribute('aria-label', 'Due griglie con 17 righe ciascuna: numero piatto e quantità');
+    function textAt(x, y, text, className) {
+      const el = document.createElementNS(svgNS, 'text');
+      el.setAttribute('x', x);
+      el.setAttribute('y', y);
+      el.setAttribute('text-anchor', 'middle');
+      el.setAttribute('dominant-baseline', 'central');
+      el.setAttribute('class', className);
+      el.textContent = text;
+      grid.append(el);
+    }
     for (let column = 0; column < 2; column++) {
-      const table = document.createElement('table');
-      table.setAttribute('aria-label', `Piatti, colonna ${column + 1}`);
-      table.innerHTML = '<thead><tr><th scope="col">NUMERO PIATTO</th><th scope="col">QUANTITÀ / PORZIONI</th></tr></thead><tbody></tbody>';
+      const x = column * 48.5 + 0.2;
+      const width = 46.1;
+      const top = 0.2, bottom = 117.8, header = 6;
+      const rowHeight = (bottom - top - header) / rowsPerColumn;
+      let lines = `M${x} ${top}H${x + width}V${bottom}H${x}Z M${x + width / 2} ${top}V${bottom}`;
+      for (let row = 0; row < rowsPerColumn; row++) {
+        const y = top + header + row * rowHeight;
+        lines += ` M${x} ${y}H${x + width}`;
+      }
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', lines);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', '#000');
+      path.setAttribute('stroke-width', '0.25');
+      grid.append(path);
+      textAt(x + width / 4, top + header / 2, 'NUMERO PIATTO', 'grid-heading');
+      textAt(x + width * 3 / 4, top + header / 2, 'QUANTITÀ / PORZIONI', 'grid-heading');
       for (let row = 0; row < rowsPerColumn; row++) {
         const entry = totals[page * pageSize + column * rowsPerColumn + row];
-        const tr = document.createElement('tr');
-        for (let cell = 0; cell < 2; cell++) {
-          const td = document.createElement('td');
-          td.textContent = entry ? entry[cell] : '';
-          tr.append(td);
+        if (entry) {
+          const y = top + header + (row + 0.5) * rowHeight;
+          textAt(x + width / 4, y, entry[0], 'grid-number');
+          textAt(x + width * 3 / 4, y, entry[1], 'grid-number');
         }
-        table.querySelector('tbody').append(tr);
       }
-      sheet.querySelector('.sheet-grids').append(table);
     }
+    sheet.querySelector('.sheet-grids').append(grid);
     if (pages > 1) {
       const counter = document.createElement('p');
       counter.className = 'sheet-page';
